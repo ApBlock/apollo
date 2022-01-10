@@ -1,7 +1,7 @@
 {
     "name": "apblock/apollo",
     "type": "library",
-    "license": "PHP License 3.0 (PHP-3.0)",
+    "license": "MIT",
     "authors": [
         {
             "role": "Author",
