@@ -64,13 +64,13 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
 
     public function register() :void
     {
-        $this->getContainer()->addShared(LoggerInterface::class, ($this->logger instanceof LoggerInterface ? $this->logger : new Logger('Apollo')));
-        $this->getContainer()->addShared(ServerRequestInterface::class, $this->request);
-        $this->getContainer()->addShared(Config::class, $this->config);
+        $this->getContainer()->share(LoggerInterface::class, ($this->logger instanceof LoggerInterface ? $this->logger : new Logger('Apollo')));
+        $this->getContainer()->share(ServerRequestInterface::class, $this->request);
+        $this->getContainer()->share(Config::class, $this->config);
     }
 
-    public function provides(string $id): bool
-    {
-        return in_array($id, $this->provides);
-    }
+//    public function provides(string $id): bool
+//    {
+//        return in_array($id, $this->provides);
+//    }
 }

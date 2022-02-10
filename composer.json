@@ -32,7 +32,7 @@
         "ext-exif": "*",
         "ext-fileinfo": "*",
         "doctrine/doctrine-module": "^4.1",
-        "league/container": "3.4.1",
+        "league/container": "2.4.1",
         "monolog/monolog": "^2.3",
         "guzzlehttp/psr7": "^2.1",
         "league/route": "^5.1",

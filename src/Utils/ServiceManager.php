@@ -4,7 +4,7 @@ namespace ApBlock\Apollo\Utils;
 
 use ApBlock\Apollo\Config\Config;
 use ApBlock\Apollo\Config\ConfigurableFactoryInterface;
-use League\Container\DefinitionContainerInterface;
+use League\Container\ContainerInterface;
 use League\Container\Exception\NotFoundException;
 use League\Container\ContainerAwareInterface;
 use League\Container\ContainerAwareTrait;
@@ -32,9 +32,9 @@ class ServiceManager implements \Interop\Container\ContainerInterface, Container
 
     /**
      * ServiceManager constructor.
-     * @param DefinitionContainerInterface $container
+     * @param ContainerInterface $container
      */
-    public function __construct(DefinitionContainerInterface $container)
+    public function __construct(ContainerInterface $container)
     {
         $this->setContainer($container);
     }
@@ -62,7 +62,7 @@ class ServiceManager implements \Interop\Container\ContainerInterface, Container
                 sprintf('Alias (%s) is not an existing class and therefore cannot be resolved', $alias)
             );
         }
-        $factory = $this->container->getNew($this->factories[$alias]);
+        $factory = $this->container->get($this->factories[$alias]);
         $obj = $this->_get($factory, $alias);
         if (!$obj) {
             $obj = $this->_build($factory, $alias);
@@ -105,7 +105,7 @@ class ServiceManager implements \Interop\Container\ContainerInterface, Container
      */
     private function _getConfig($alias)
     {
-        return $this->container->getNew(Config::class)->fromDimension($this->configDimensions[$alias]);
+        return $this->container->get(Config::class)->fromDimension($this->configDimensions[$alias]);
     }
 
     /**
