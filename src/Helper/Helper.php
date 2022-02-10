@@ -40,25 +40,25 @@ class Helper implements LoggerHelperInterface
     protected $jwt = false;
 
 
-    /**
-     * Base constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param Config $config
-     * @param LoggerInterface|null $logger
-     */
-    public function __construct(EntityManagerInterface $entityManager, Config $config, LoggerInterface $logger = null)
-    {
-        $this->entityManager = $entityManager;
-        $this->basepath = $config->get(array('routing','basepath'), '/');
-        $this->config = $config->fromDimension(array('route','modules'));
-        $this->jwt = $config->get(array('jwt'),false);
-        $this->setLogDebug($this->config->get('debug', false));
-        if ($logger) {
-            $this->setLogger($logger);
-        }
-        $this->session_key = $this->config->get(array('Session', 'session_key'), 'user');
-        $this->session_destroy = $this->config->get(array('Session', 'session_destroy'), true);
-    }
+//    /**
+//     * Base constructor.
+//     * @param EntityManagerInterface $entityManager
+//     * @param Config $config
+//     * @param LoggerInterface|null $logger
+//     */
+//    public function __construct(EntityManagerInterface $entityManager, Config $config, LoggerInterface $logger = null)
+//    {
+//        $this->entityManager = $entityManager;
+//        $this->basepath = $config->get(array('routing','basepath'), '/');
+//        $this->config = $config->fromDimension(array('route','modules'));
+//        $this->jwt = $config->get(array('jwt'),false);
+//        $this->setLogDebug($this->config->get('debug', false));
+//        if ($logger) {
+//            $this->setLogger($logger);
+//        }
+//        $this->session_key = $this->config->get(array('Session', 'session_key'), 'user');
+//        $this->session_destroy = $this->config->get(array('Session', 'session_destroy'), true);
+//    }
 
     /**
      * @return bool|object

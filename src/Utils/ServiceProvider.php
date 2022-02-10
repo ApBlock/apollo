@@ -53,27 +53,24 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
     {
         /** @var Container $container */
         $container = $this->getContainer();
-
         $container
             ->inflector(ContainerAwareInterface::class)
             ->invokeMethod('setContainer', array('container'=>$container));
-
         $serviceManager = new ServiceManager($this->getContainer());
         $serviceManager->configure($this->config->fromDimension('services'));
         $container->delegate($serviceManager);
-
         $container->delegate(new ReflectionContainer());
     }
 
     public function register() :void
     {
-        $this->getContainer()->share(LoggerInterface::class, ($this->logger instanceof LoggerInterface ? $this->logger : new Logger('Apollo')));
-        $this->getContainer()->share(ServerRequestInterface::class, $this->request);
-        $this->getContainer()->share(Config::class, $this->config);
+        $this->getContainer()->addShared(LoggerInterface::class, ($this->logger instanceof LoggerInterface ? $this->logger : new Logger('Apollo')));
+        $this->getContainer()->addShared(ServerRequestInterface::class, $this->request);
+        $this->getContainer()->addShared(Config::class, $this->config);
     }
 
     public function provides(string $id): bool
     {
-        // TODO: Implement provides() method.
+        return in_array($id, $this->provides);
     }
 }

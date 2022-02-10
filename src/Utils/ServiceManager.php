@@ -9,7 +9,7 @@ use League\Container\Exception\NotFoundException;
 use League\Container\ContainerAwareInterface;
 use League\Container\ContainerAwareTrait;
 
-class ServiceManager implements \Interop\Container\ContainerInterface
+class ServiceManager implements \Interop\Container\ContainerInterface, ContainerAwareInterface
 {
     use ContainerAwareTrait;
 
@@ -62,7 +62,7 @@ class ServiceManager implements \Interop\Container\ContainerInterface
                 sprintf('Alias (%s) is not an existing class and therefore cannot be resolved', $alias)
             );
         }
-        $factory = $this->container->get($this->factories[$alias]);
+        $factory = $this->container->getNew($this->factories[$alias]);
         $obj = $this->_get($factory, $alias);
         if (!$obj) {
             $obj = $this->_build($factory, $alias);
@@ -105,7 +105,7 @@ class ServiceManager implements \Interop\Container\ContainerInterface
      */
     private function _getConfig($alias)
     {
-        return $this->container->get(Config::class)->fromDimension($this->configDimensions[$alias]);
+        return $this->container->getNew(Config::class)->fromDimension($this->configDimensions[$alias]);
     }
 
     /**

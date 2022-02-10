@@ -11,7 +11,6 @@ use League\Container\ContainerAwareInterface;
 use League\Container\ContainerAwareTrait;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\DebugExtension;
-use Twig\Extension\EscaperExtension;
 use Twig\Loader\FilesystemLoader;
 
 class TwigFactory implements InvokableFactoryInterface, ConfigurableFactoryInterface, ContainerAwareInterface
@@ -32,7 +31,7 @@ class TwigFactory implements InvokableFactoryInterface, ConfigurableFactoryInter
             throw new Exception(__CLASS__ . " can't work without configuration");
         }
 
-        $loader = new FilesystemLoader($this->config->get('templates_path', '/src/templates'));
+        $loader = new FilesystemLoader($this->config->get('templates_path', BASE_DIR.'/src/templates'));
         $paths = $this->config->get('paths', array());
         if (!empty($paths)) {
             foreach ($paths as $module => $module_paths) {

@@ -4,25 +4,6 @@ declare(strict_types=1);
 
 namespace ApBlock\Apollo;
 
-/*
- * require 'vendor/autoload.php';
- * session_start();
- *
- * setlocale(LC_TIME, 'hu_HU.UTF8', 'Hungarian');
- *
- * $apollo = new Apollo();
- * $apollo->errorReporting("on"); //not required
- * $apollo->setBaseDir(__DIR__); //not required
- * $apollo->setHomeDir(""); //not required
- * $apollo->setMaxLoggerFiles(7); //not required
- * $apollo->setConfigModules(array('db', 'routing', 'twig', 'route', 'jwt', 'doctrine', 'services'));
- * $response = $apollo->run();
- * session_write_close();
- * echo Html::response($response);
- *
- * */
-
-
 use GuzzleHttp\Psr7\ServerRequest;
 use ApBlock\Apollo\Factory\Factory;
 use ApBlock\Apollo\Logger\ErrorLogger;
@@ -41,7 +22,7 @@ class Apollo
     private $container;
 
     /** @var string $baseDir */
-    private $baseDir = __DIR__;
+    private $baseDir;
 
     /** @var string $homeDir */
     private $homeDir = "";
@@ -49,34 +30,13 @@ class Apollo
     /** @var int $maxLoggerFiles */
     private $maxLoggerFiles = 7;
 
-    public function __construct()
-    {
-        $this->initErrorHandler();
-        $this->initConfig();
-        $this->initContainers();
-    }
+    /** @var bool $allowErrorReporting */
+    private $allowErrorReporting = false;
 
     private function initErrorHandler()
     {
-        $error_logger = new ErrorLogger(new Logger('PHP', $this->getBaseDir(),$this->maxLoggerFiles));
+        $error_logger = new ErrorLogger(new Logger('PHP', $this->maxLoggerFiles));
         set_error_handler(array($error_logger, 'customErrorHandler'));
-    }
-
-    private function initConfig()
-    {
-        Factory::setConfigPath($this->getBaseDir()."/config/");
-        $this->config = Factory::fromNames($this->configModules, true);
-        $modules_config = $this->config->get(array('route', 'modules'));
-        foreach ($modules_config as $module) {
-            if (is_array($module) && !empty($module['paths'])) {
-                if (count($module['paths']) == 1 && array_key_exists('/', $module['paths'])) {
-                    $cfg = $module['paths'];
-                } else {
-                    $cfg = array('/' => array('paths' => $module['paths']));
-                }
-                $this->config->merge(array('routing' => array('paths' => $cfg)));
-            }
-        }
     }
 
     private function initContainers()
@@ -95,21 +55,9 @@ class Apollo
         $this->configModules = $configModules;
     }
 
-    /**
-     * @param string $state
-     */
-    public function errorReporting($state = "on")
+    public function allowErrorReporting()
     {
-        switch ($state) {
-            case "on":
-                ini_set("display_errors", 1);
-                error_reporting(E_ALL);
-                break;
-            case "off":
-                ini_set("display_errors", 0);
-                error_reporting(0);
-                break;
-        }
+        $this->allowErrorReporting = true;
     }
 
     /**
@@ -127,6 +75,7 @@ class Apollo
     public function setBaseDir($baseDir)
     {
         $this->baseDir = $baseDir;
+        define("BASE_DIR",$this->baseDir);
         return $this;
     }
 
@@ -145,6 +94,7 @@ class Apollo
     public function setHomeDir($homeDir)
     {
         $this->homeDir = $homeDir;
+        define("HOME_DIR",$this->homeDir);
         return $this;
     }
 
@@ -168,6 +118,28 @@ class Apollo
 
     public function run()
     {
+        if($this->allowErrorReporting){
+            ini_set('display_errors','true');
+            error_reporting(E_ALL);
+        }else{
+            ini_set("display_errors", 'false');
+            error_reporting(0);
+        }
+        Factory::setConfigPath($this->baseDir."/config/");
+        $this->config = Factory::fromNames($this->configModules, true);
+        $this->initErrorHandler();
+        $modules_config = $this->config->get(array('route', 'modules'));
+        foreach ($modules_config as $module) {
+            if (is_array($module) && !empty($module['paths'])) {
+                if (count($module['paths']) == 1 && array_key_exists('/', $module['paths'])) {
+                    $cfg = $module['paths'];
+                } else {
+                    $cfg = array('/' => array('paths' => $module['paths']));
+                }
+                $this->config->merge(array('routing' => array('paths' => $cfg)));
+            }
+        }
+        $this->initContainers();
         $core = new ApolloKernel($this->container);
         return $core->go();
     }

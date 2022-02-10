@@ -43,14 +43,15 @@ class ApolloKernel implements LoggerHelperInterface
             ob_start();
         }
         $this->container = $container;
+        $config = $this->container->get(Config::class);
+
         $logger = $this->container->get(LoggerInterface::class);
         if ($logger) {
             $this->setLogger($logger);
         }
-        $config = $this->container->get(Config::class);
-
         $this->setLogDebug($config->get(array('route','debug'), false));
         $twig = $this->container->get(Environment::class);
+
         $this->twig = $twig;
 
         if ($this->twig instanceof Environment) {
@@ -96,7 +97,7 @@ class ApolloKernel implements LoggerHelperInterface
             );
         }
 
-        //register_shutdown_function(array($this,'_fatal_handler'));
+        register_shutdown_function(array($this,'_fatal_handler'));
     }
 
     /**

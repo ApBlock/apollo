@@ -53,14 +53,6 @@ class ApolloContainer implements LoggerHelperInterface
      * @var array
      */
     private $hooks = array();
-    /**
-     * @var string
-     */
-    protected $moduleUserRightEntity;
-    /**
-     * @var string
-     */
-    protected $moduleGroupRightEntity;
 
     /**
      * @param Config $config
@@ -83,6 +75,7 @@ class ApolloContainer implements LoggerHelperInterface
             $cn = (new \ReflectionClass($this))->getShortName();
             $this->config->setBase($cn);
         } catch (\ReflectionException $e) {
+            print_r($e->getMessage());
             $this->error('ReflectionClass', array($e->getMessage()));
         }
     }
