@@ -35,7 +35,7 @@
         "league/container": "2.4.1",
         "monolog/monolog": "^2.3",
         "guzzlehttp/psr7": "^2.1",
-        "league/route": "^5.1",
+        "league/route": "3.1.0",
         "twig/twig": "^3.3",
         "doctrine/orm": "^2.10",
         "beberlei/doctrineextensions": "^1.3",

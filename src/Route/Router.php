@@ -5,7 +5,7 @@ namespace ApBlock\Apollo\Route;
 use ApBlock\Apollo\Config\ConfigurableFactoryInterface;
 use ApBlock\Apollo\Config\ConfigurableFactoryTrait;
 use GuzzleHttp\Psr7\Response;
-use League\Route\Router as RouteCollection;
+use League\Route\RouteCollection;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ApBlock\Apollo\Logger\Interfaces\LoggerHelperInterface;
