@@ -2,16 +2,15 @@
 
 namespace ApBlock\Apollo\Form\View\Helper;
 
-use ApBlock\Apollo\Factory\Factory;
-use ApBlock\Apollo\Form\ConfigProvider;
+
 use Laminas\View\Renderer\PhpRenderer;
+use ApBlock\Apollo\Factory;
+use ApBlock\Apollo\Form\ConfigProvider;
 
 class ElementRender
 {
     public function render($element)
     {
-        //todo $this->baseDir()
-        Factory::setConfigPath("/config/");
         $config = Factory::fromNames(array('form'), true);
         $plugin_config = (new ConfigProvider())->getViewHelperConfig();
         $plugin_config['aliases'] = array_merge($plugin_config['aliases'], $config->get(array('form', 'aliases'), array()));

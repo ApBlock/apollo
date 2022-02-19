@@ -1,10 +1,11 @@
 <?php
 
+
 namespace ApBlock\Apollo\Form\View\Helper;
 
 use InvalidArgumentException;
 use LogicException;
-use ApBlock\Apollo\Factory\Factory;
+use ApBlock\Apollo\Factory;
 use ApBlock\Apollo\Twig\Interfaces\TwigAwareInterface;
 use ApBlock\Apollo\Twig\Traits\TwigAwareTrait;
 use Traversable;

@@ -6,28 +6,27 @@ use ApBlock\Apollo\Config\Config;
 use ApBlock\Apollo\Utils\ArrayUtils;
 use RuntimeException;
 
-class Factory
-{
+class Factory{
 
     /**
      * @var string
      */
-    protected static $config_path;
+    protected static $config_path = BASE_DIR . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR;
 
     /**
      * Read a config from a file.
      *
-     * @param string $filename
-     * @param bool $returnConfigObject
-     * @param bool $useIncludePath
+     * @param  string  $filename
+     * @param  bool $returnConfigObject
+     * @param  bool $useIncludePath
      * @return array|Config
      * @throws RuntimeException
      */
     public static function fromFile($filename, $returnConfigObject = false, $useIncludePath = false)
     {
         $file_path = $filename;
-        if (!file_exists($filename)) {
-            if (!$useIncludePath) {
+        if (! file_exists($filename)) {
+            if (! $useIncludePath) {
                 throw new RuntimeException(sprintf(
                     'Filename "%s" cannot be found relative to the working directory',
                     $filename
@@ -37,7 +36,7 @@ class Factory
             $file_path = stream_resolve_include_path($filename);
         }
 
-        if (!$file_path) {
+        if (! $file_path) {
             throw new RuntimeException(sprintf(
                 'Filename "%s" cannot be found relative to the working directory or the include_path ("%s")',
                 $filename,
@@ -47,7 +46,7 @@ class Factory
 
         $path_info = pathinfo($file_path);
 
-        if (!isset($path_info['extension'])) {
+        if (! isset($path_info['extension'])) {
             throw new RuntimeException(sprintf(
                 'Filename "%s" is missing an extension and cannot be auto-detected',
                 $filename
@@ -57,7 +56,7 @@ class Factory
         $extension = strtolower($path_info['extension']);
 
         if ($extension === 'php') {
-            if (!is_file($file_path) || !is_readable($file_path)) {
+            if (! is_file($file_path) || ! is_readable($file_path)) {
                 throw new RuntimeException(sprintf(
                     "File '%s' doesn't exist or not readable",
                     $filename
@@ -79,9 +78,9 @@ class Factory
     /**
      * Read configuration from multiple files and merge them.
      *
-     * @param array $files
-     * @param bool $returnConfigObject
-     * @param bool $useIncludePath
+     * @param  array   $files
+     * @param  bool $returnConfigObject
+     * @param  bool $useIncludePath
      * @return array|Config
      */
     public static function fromFiles(array $files, $returnConfigObject = false, $useIncludePath = false)

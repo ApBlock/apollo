@@ -2,6 +2,7 @@
 
 namespace ApBlock\Apollo\Form\View\Helper;
 
+use ApBlock\Apollo\Form\View\Helper\ElementRender;
 use Laminas\Form\Element;
 use Laminas\Form\FormInterface;
 use Laminas\Form\View\Helper\Form;

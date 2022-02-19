@@ -1,6 +1,6 @@
 <?php
-
 namespace ApBlock\Apollo\Form\View\Helper;
+
 
 use ApBlock\Apollo\Twig\Interfaces\TwigAwareInterface;
 use ApBlock\Apollo\Twig\Traits\TwigAwareTrait;
@@ -14,7 +14,7 @@ class FormCollection extends BaseFormCollection implements TwigAwareInterface
 
     protected $onlyRenderTemplateWrapper =  '<span data-%s-template="%s"></span>';
 
-    public function render(ElementInterface $element): string
+    public function render(ElementInterface $element)
     {
         $this->setWrapper('<div%4$s>%2$s%1$s%3$s</div>');
         return parent::render($element);

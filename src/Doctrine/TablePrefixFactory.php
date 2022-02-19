@@ -1,12 +1,11 @@
 <?php
 namespace ApBlock\Apollo\Doctrine;
 
+use Exception;
 use ApBlock\Apollo\Config\Config;
 use ApBlock\Apollo\Config\ConfigurableFactoryInterface;
 use ApBlock\Apollo\Config\ConfigurableFactoryTrait;
 use ApBlock\Apollo\Utils\InvokableFactoryInterface;
-use Exception;
-
 
 class TablePrefixFactory implements InvokableFactoryInterface, ConfigurableFactoryInterface
 {

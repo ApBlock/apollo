@@ -1,5 +1,6 @@
 <?php
 
+
 namespace ApBlock\Apollo\Logger\Traits;
 
 use Psr\Log\LoggerAwareTrait;

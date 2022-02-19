@@ -2,9 +2,8 @@
 
 namespace ApBlock\Apollo\Form;
 
-
+use ApBlock\Apollo\Form\View\Helper\FormElement;
 use ApBlock\Apollo\Utils\ArrayUtils;
-use Laminas\Form\View\Helper\FormElement;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 
 class ConfigProvider extends \Laminas\Form\ConfigProvider
@@ -61,7 +60,7 @@ class ConfigProvider extends \Laminas\Form\ConfigProvider
         ),
     );
 
-    public function getViewHelperConfig(): array
+    public function getViewHelperConfig()
     {
         $config = ArrayUtils::merge(parent::getViewHelperConfig(), $this->config);
         $config['initializers'][FormElement::class] = function (/** @noinspection PhpUnusedParameterInspection */ $context, $object) {

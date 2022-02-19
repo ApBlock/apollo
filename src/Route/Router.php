@@ -1,5 +1,6 @@
 <?php
 
+
 namespace ApBlock\Apollo\Route;
 
 use ApBlock\Apollo\Config\ConfigurableFactoryInterface;

@@ -3,11 +3,11 @@
 namespace ApBlock\Apollo\Utils;
 
 use ApBlock\Apollo\Config\Config;
-use GuzzleHttp\Psr7\ServerRequest;
 use ApBlock\Apollo\Html\Html;
 use ApBlock\Apollo\Logger\Logger;
+use GuzzleHttp\Psr7\ServerRequest;
 use League\Container\Container;
-use League\Container\ContainerAwareInterface;
+use League\Container\ImmutableContainerAwareInterface;
 use League\Container\ReflectionContainer;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 use League\Container\ServiceProvider\BootableServiceProviderInterface;
@@ -49,28 +49,26 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         $this->request = $request;
     }
 
-    public function boot() :void
+    public function boot()
     {
         /** @var Container $container */
         $container = $this->getContainer();
+
         $container
-            ->inflector(ContainerAwareInterface::class)
+            ->inflector(ImmutableContainerAwareInterface::class)
             ->invokeMethod('setContainer', array('container'=>$container));
+
         $serviceManager = new ServiceManager($this->getContainer());
         $serviceManager->configure($this->config->fromDimension('services'));
         $container->delegate($serviceManager);
+
         $container->delegate(new ReflectionContainer());
     }
 
-    public function register() :void
+    public function register()
     {
         $this->getContainer()->share(LoggerInterface::class, ($this->logger instanceof LoggerInterface ? $this->logger : new Logger('Apollo')));
         $this->getContainer()->share(ServerRequestInterface::class, $this->request);
         $this->getContainer()->share(Config::class, $this->config);
     }
-
-//    public function provides(string $id): bool
-//    {
-//        return in_array($id, $this->provides);
-//    }
 }

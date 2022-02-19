@@ -11,10 +11,9 @@ use League\Route\Route;
 use League\Route\Strategy\StrategyInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
-use ApBlock\Apollo\Factory\Factory;
+use ApBlock\Apollo\Factory;
 use ApBlock\Apollo\Logger\Interfaces\LoggerHelperInterface;
 use ApBlock\Apollo\Logger\Traits\LoggerHelperTrait;
 use ApBlock\Apollo\Route\Router;
@@ -38,7 +37,7 @@ class ApplicationStrategy implements StrategyInterface, LoggerHelperInterface
     protected $router;
 
     /**
-     * Base constructor.
+     * ApolloContainer constructor.
      * @param \Twig\Environment $twig
      * @param Router $router
      * @param LoggerInterface|null $logger
@@ -187,20 +186,5 @@ class ApplicationStrategy implements StrategyInterface, LoggerHelperInterface
             $response = $response->withHeader('content-type', $this->content_type);
         }
         return $response;
-    }
-
-    public function addResponseDecorator(callable $decorator): StrategyInterface
-    {
-        // TODO: Implement addResponseDecorator() method.
-    }
-
-    public function getThrowableHandler(): MiddlewareInterface
-    {
-        // TODO: Implement getThrowableHandler() method.
-    }
-
-    public function invokeRouteCallable(Route $route, ServerRequestInterface $request): ResponseInterface
-    {
-        // TODO: Implement invokeRouteCallable() method.
     }
 }

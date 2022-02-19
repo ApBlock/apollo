@@ -2,7 +2,6 @@
 namespace ApBlock\Apollo\Doctrine;
 
 
-use ApBlock\Apollo\Config\Config;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\EventManager;
 use Doctrine\Common\EventSubscriber;
@@ -14,25 +13,24 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Setup;
 use Exception;
+use ApBlock\Apollo\Config\Config;
 use ApBlock\Apollo\Config\ConfigurableFactoryInterface;
 use ApBlock\Apollo\Config\ConfigurableFactoryTrait;
 use ApBlock\Apollo\Logger\Logger;
-use League\Container\ContainerAwareInterface;
 use ApBlock\Apollo\Utils\InvokableFactoryInterface;
-use League\Container\ContainerAwareTrait;
+use League\Container\ImmutableContainerAwareInterface;
+use League\Container\ImmutableContainerAwareTrait;
 use PDO;
 
-class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryInterface, ContainerAwareInterface
+class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryInterface, ImmutableContainerAwareInterface
 {
     use ConfigurableFactoryTrait;
-    use ContainerAwareTrait;
+    use ImmutableContainerAwareTrait;
 
     /**
      * @var Logger
      */
     private $logger;
-	
-	private $cont;
 
     /**
      * @return EntityManager

@@ -2,9 +2,6 @@
 
 namespace ApBlock\Apollo\Utils;
 
-use Laminas\Stdlib\ArrayUtils\MergeRemoveKey;
-use Laminas\Stdlib\ArrayUtils\MergeReplaceKeyInterface;
-
 class ArrayUtils
 {
 

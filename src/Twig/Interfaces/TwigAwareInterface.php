@@ -1,5 +1,6 @@
 <?php
 
+
 namespace ApBlock\Apollo\Twig\Interfaces;
 
 use Twig\Environment;

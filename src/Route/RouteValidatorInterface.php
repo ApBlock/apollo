@@ -1,5 +1,4 @@
 <?php
-
 namespace ApBlock\Apollo\Route;
 
 use League\Route\Route;

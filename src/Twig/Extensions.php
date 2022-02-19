@@ -1,5 +1,6 @@
 <?php
 
+
 namespace ApBlock\Apollo\Twig;
 
 use ApBlock\Apollo\Helper\Helper;
@@ -14,7 +15,7 @@ class Extensions extends AbstractExtension
     protected $helper;
 
     /**
-     * Base constructor.
+     * ApolloContainer constructor.
      * @param Helper $helper
      */
     public function __construct(Helper $helper)
@@ -30,9 +31,23 @@ class Extensions extends AbstractExtension
     public function getFunctions()
     {
         return array(
+            new TwigFunction('header_menu', array($this, 'headerMenu')),
             new TwigFunction('getBasepath', array($this, 'basepath')),
             new TwigFunction('get_filemtime', array($this, 'getFilemtime')),
         );
+    }
+
+    /**
+     * @return array
+     */
+    public function headerMenu()
+    {
+        if (!empty($_SESSION['user'])) {
+            $params = array();
+            $params['menu'] = $this->helper->getMenu();
+            return $params;
+        }
+        return array();
     }
 
     /**

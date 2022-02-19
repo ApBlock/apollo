@@ -7,16 +7,16 @@ use ApBlock\Apollo\Config\ConfigurableFactoryInterface;
 use ApBlock\Apollo\Config\ConfigurableFactoryTrait;
 use ApBlock\Apollo\Logger\Logger;
 use ApBlock\Apollo\Utils\InvokableFactoryInterface;
-use League\Container\ContainerAwareInterface;
-use League\Container\ContainerAwareTrait;
+use League\Container\ImmutableContainerAwareInterface;
+use League\Container\ImmutableContainerAwareTrait;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\DebugExtension;
 use Twig\Loader\FilesystemLoader;
 
-class TwigFactory implements InvokableFactoryInterface, ConfigurableFactoryInterface, ContainerAwareInterface
+class TwigFactory implements InvokableFactoryInterface, ConfigurableFactoryInterface, ImmutableContainerAwareInterface
 {
     use ConfigurableFactoryTrait;
-    use ContainerAwareTrait;
+    use ImmutableContainerAwareTrait;
 
     /**
      * @return Twig
@@ -31,7 +31,7 @@ class TwigFactory implements InvokableFactoryInterface, ConfigurableFactoryInter
             throw new Exception(__CLASS__ . " can't work without configuration");
         }
 
-        $loader = new FilesystemLoader($this->config->get('templates_path', BASE_DIR.'/src/templates'));
+        $loader = new FilesystemLoader($this->config->get('templates_path', BASE_DIR . '/src/templates'));
         $paths = $this->config->get('paths', array());
         if (!empty($paths)) {
             foreach ($paths as $module => $module_paths) {

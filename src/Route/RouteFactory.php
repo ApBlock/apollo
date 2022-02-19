@@ -1,25 +1,25 @@
 <?php
-
 namespace ApBlock\Apollo\Route;
 
+
+use ApBlock\Apollo\Html\Html;
 use Exception;
 use FastRoute\DataGenerator;
 use FastRoute\RouteParser;
 use ApBlock\Apollo\Config\ConfigurableFactoryInterface;
 use ApBlock\Apollo\Config\ConfigurableFactoryTrait;
-use ApBlock\Apollo\Html\Html;
 use ApBlock\Apollo\Utils\InvokableFactoryInterface;
 use GuzzleHttp\Psr7\Response;
 use League\Container\Container;
-use League\Container\ContainerAwareInterface;
-use League\Container\ContainerAwareTrait;
+use League\Container\ImmutableContainerAwareInterface;
+use League\Container\ImmutableContainerAwareTrait;
 use Psr\Http\Message\ServerRequestInterface;
 use Twig\Environment;
 
-class RouteFactory implements InvokableFactoryInterface, ConfigurableFactoryInterface, ContainerAwareInterface
+class RouteFactory implements InvokableFactoryInterface, ConfigurableFactoryInterface, ImmutableContainerAwareInterface
 {
     use ConfigurableFactoryTrait;
-    use ContainerAwareTrait;
+    use ImmutableContainerAwareTrait;
 
     /**
      * @return Router

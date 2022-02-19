@@ -1,9 +1,9 @@
 <?php
 
+
 namespace ApBlock\Apollo;
 
 use ApBlock\Apollo\Html\Html;
-use Laminas\View\Renderer\PhpRenderer;
 use Psr\Log\LoggerInterface;
 use ApBlock\Apollo\Config\Config;
 use ApBlock\Apollo\Form\ConfigProvider;
@@ -20,6 +20,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Twig\Environment;
 use Twig\TwigFunction;
+use Laminas\View\Renderer\PhpRenderer;
 
 class ApolloKernel implements LoggerHelperInterface
 {
@@ -44,14 +45,13 @@ class ApolloKernel implements LoggerHelperInterface
         }
         $this->container = $container;
         $config = $this->container->get(Config::class);
-
         $logger = $this->container->get(LoggerInterface::class);
         if ($logger) {
             $this->setLogger($logger);
         }
+
         $this->setLogDebug($config->get(array('route','debug'), false));
         $twig = $this->container->get(Environment::class);
-
         $this->twig = $twig;
 
         if ($this->twig instanceof Environment) {
@@ -97,7 +97,7 @@ class ApolloKernel implements LoggerHelperInterface
             );
         }
 
-        register_shutdown_function(array($this,'_fatal_handler'));
+        //register_shutdown_function(array($this,'_fatal_handler'));
     }
 
     /**

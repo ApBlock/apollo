@@ -1,17 +1,18 @@
 <?php
-
 namespace ApBlock\Apollo\Utils;
+
 
 use ApBlock\Apollo\Config\Config;
 use ApBlock\Apollo\Config\ConfigurableFactoryInterface;
 use League\Container\ContainerInterface;
 use League\Container\Exception\NotFoundException;
-use League\Container\ContainerAwareInterface;
-use League\Container\ContainerAwareTrait;
+use League\Container\ImmutableContainerAwareInterface;
+use League\Container\ImmutableContainerAwareTrait;
+use League\Container\ImmutableContainerInterface;
 
-class ServiceManager implements \Interop\Container\ContainerInterface, ContainerAwareInterface
+class ServiceManager implements ImmutableContainerInterface
 {
-    use ContainerAwareTrait;
+    use ImmutableContainerAwareTrait;
 
     /**
      * @var array
@@ -130,7 +131,7 @@ class ServiceManager implements \Interop\Container\ContainerInterface, Container
     private function _build(InvokableFactoryInterface $factory, $alias)
     {
         $hash = $this->_hash($factory, $alias);
-        if ($factory instanceof ContainerAwareInterface) {
+        if ($factory instanceof ImmutableContainerAwareInterface) {
             $factory->setContainer($this->container);
         }
         if ($factory instanceof ConfigurableFactoryInterface) {

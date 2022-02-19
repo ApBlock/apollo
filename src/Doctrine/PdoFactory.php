@@ -1,6 +1,6 @@
 <?php
-
 namespace ApBlock\Apollo\Doctrine;
+
 
 use ApBlock\Apollo\Utils\InvokableFactoryInterface;
 use Exception;

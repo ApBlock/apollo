@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ApBlock\Apollo;
 
+use ApBlock\Apollo\Config\Config;
 use GuzzleHttp\Psr7\ServerRequest;
 use ApBlock\Apollo\Factory\Factory;
 use ApBlock\Apollo\Logger\ErrorLogger;
@@ -39,12 +40,13 @@ class Apollo
         set_error_handler(array($error_logger, 'customErrorHandler'));
     }
 
-    private function initContainers()
+    private function initContainers(Config $config)
     {
         $this->container = new \League\Container\Container();
         $request = ServerRequest::fromGlobals();
-        $serviceProvider = new ServiceProvider($this->config, $request);
+        $serviceProvider = new ServiceProvider($config, $request);
         $this->container->addServiceProvider($serviceProvider);
+        return $this->container;
     }
 
     /**
@@ -139,8 +141,8 @@ class Apollo
                 $this->config->merge(array('routing' => array('paths' => $cfg)));
             }
         }
-        $this->initContainers();
-        $core = new ApolloKernel($this->container);
+        $container = $this->initContainers($this->config);
+        $core = new ApolloKernel($container);
         return $core->go();
     }
 }

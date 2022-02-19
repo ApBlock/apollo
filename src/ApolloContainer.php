@@ -1,15 +1,17 @@
 <?php
 
+
 namespace ApBlock\Apollo;
 
-use Doctrine\ORM\EntityManagerInterface;
 use ApBlock\Apollo\Helper\Helper;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use ApBlock\Apollo\Config\Config;
 use ApBlock\Apollo\Logger\Interfaces\LoggerHelperInterface;
 use ApBlock\Apollo\Logger\Traits\LoggerHelperTrait;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use ApBlock\Apollo\modules\Session\Entity\Users;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -44,7 +46,6 @@ class ApolloContainer implements LoggerHelperInterface
      * @var EntityManagerInterface
      */
     protected $entityManager;
-
     /**
      * @var Helper
      */
@@ -55,6 +56,7 @@ class ApolloContainer implements LoggerHelperInterface
     private $hooks = array();
 
     /**
+     * ApolloContainer constructor.
      * @param Config $config
      * @param \Twig\Environment $twig
      * @param EntityManagerInterface $entityManager
@@ -122,6 +124,98 @@ class ApolloContainer implements LoggerHelperInterface
 
         return $this->twigErrorResponse($response, 501, $params);
     }
+
+    /**
+     * @param $name
+     * @return bool
+     */
+    protected function hasHook($name)
+    {
+        return isset($this->hooks[$name]);
+    }
+
+    /**
+     * @return array
+     */
+    protected function getHooks()
+    {
+        return $this->hooks;
+    }
+
+    /**
+     * @param $name
+     * @param $callable
+     * @return ApolloContainer
+     */
+    protected function addHook($name, $callable)
+    {
+        if (!isset($this->hooks[$name])) {
+            if (is_callable($callable)) {
+                $this->hooks[$name] = $callable;
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @param $name
+     * @param $callable
+     * @return ApolloContainer
+     */
+    protected function setHook($name, $callable)
+    {
+        if (isset($this->hooks[$name])) {
+            if (is_callable($callable)) {
+                $this->hooks[$name] = $callable;
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @param $name
+     * @return ApolloContainer
+     */
+    protected function delHook($name)
+    {
+        if (isset($this->hooks[$name])) {
+            unset($this->hooks[$name]);
+        }
+        return $this;
+    }
+
+    /**
+     * @param array $hooks
+     * @return ApolloContainer
+     */
+    protected function setHooks(array $hooks)
+    {
+        $this->hooks = array();
+        if (!empty($hooks)) {
+            foreach ($hooks as $name => $callable) {
+                $this->addHook($name, $callable);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function callHook()
+    {
+        if (!empty($this->hooks)) {
+            $args = func_get_args();
+            $name = array_shift($args);
+            if ($name && isset($this->hooks[$name])) {
+                if (is_callable($this->hooks[$name])) {
+                    return call_user_func_array($this->hooks[$name], $args);
+                }
+            }
+        }
+        return null;
+    }
+
 
     /**
      * @param ResponseInterface $response

@@ -2,11 +2,12 @@
 
 namespace ApBlock\Apollo\Route;
 
-use Doctrine\ORM\EntityManagerInterface;
 use ApBlock\Apollo\Helper\Helper;
-use ApBlock\Apollo\Html\Html;
+use Doctrine\ORM\EntityManagerInterface;
 use League\Route\Http\Exception\ForbiddenException;
 use ApBlock\Apollo\Config\Config;
+use ApBlock\Apollo\Html;
+use ApBlock\Apollo\modules\Session;
 use Twig\Environment;
 use League\Route\Http\Exception\BadRequestException;
 use League\Route\Http\Exception\UnauthorizedException;
@@ -37,7 +38,7 @@ class RouteValidator implements RouteValidatorInterface
     protected $entityManager;
 
     /**
-     * Base constructor.
+     * ApolloContainer constructor.
      * @param Config $config
      * @param \Twig\Environment $twig
      * @param Helper $helper
@@ -97,7 +98,7 @@ class RouteValidator implements RouteValidatorInterface
                 return $response;
             });
         }
-        if ($requires['required_ContentType'] && in_array($requires['required_ContentType'], $options['valid_ContentTypes']) && in_array($options['method'], array('POST', 'PUT', 'PATCH', 'DELETE'))) {
+        if ($requires['required_ContentType'] && in_array($requires['required_ContentType'], $options['valid_ContentTypes']) && in_array($options['method'], array('POST', 'PUT', 'PATCH'))) {
             $options['required_ContentType'] = $requires['required_ContentType'];
             $map->middleware(function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($options) {
                 if ($this->checkContentType($request, $response, $options)) {
@@ -150,7 +151,7 @@ class RouteValidator implements RouteValidatorInterface
             }
         }
         if (!empty($errors)) {
-            throw new BadRequestException(json_encode(array('message'=>'bad_request','data'=>$errors)));
+            throw new BadRequestException(implode("\n", array('Bad Request', json_encode($errors))));
         }
         return true;
     }

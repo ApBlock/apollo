@@ -1,5 +1,4 @@
 <?php
-
 namespace ApBlock\Apollo\Form\View\Helper;
 
 

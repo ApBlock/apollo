@@ -1,6 +1,8 @@
 <?php
 
+
 namespace ApBlock\Apollo\Logger;
+
 
 use ApBlock\Apollo\Logger\Interfaces\LoggerHelperInterface;
 use ApBlock\Apollo\Logger\Traits\LoggerHelperTrait;

@@ -1,5 +1,6 @@
 <?php
 
+
 namespace ApBlock\Apollo\Logger\Interfaces;
 
 use Psr\Log\LoggerAwareInterface;
