@@ -27,7 +27,6 @@ class RouteFactory implements InvokableFactoryInterface, ConfigurableFactoryInte
      */
     public function __invoke()
     {
-
         if (null==$this->config) {
             throw new Exception(__CLASS__ . " can't work without configuration");
         }

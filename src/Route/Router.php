@@ -3,6 +3,7 @@
 
 namespace ApBlock\Apollo\Route;
 
+use ApBlock\Apollo\Auth\Auth;
 use ApBlock\Apollo\Config\ConfigurableFactoryInterface;
 use ApBlock\Apollo\Config\ConfigurableFactoryTrait;
 use GuzzleHttp\Psr7\Response;
@@ -140,6 +141,7 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
                             'required_headers' => array(),
                             'required_ContentType' => '',
                             'require_auth' => false,
+                            'auth_method' => Auth::Session,
                             'require_permissions' => array(),
                         )
                     );
@@ -150,7 +152,6 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
                         $validator = $this->validator;
                         $map = $validator->validate($map, $requires, $options);
                     }
-                    $this->debug('strategy', array('path' => rtrim($pre, '/') . '/' . trim($path, '/'), 'method' => $method, 'name' => $map->getName(), 'strategy' => $map->getStrategy()));
                 }
             }
             if (!empty($data['paths'])) {

@@ -2,6 +2,7 @@
 
 namespace ApBlock\Apollo\Route;
 
+use ApBlock\Apollo\Auth\Auth;
 use ApBlock\Apollo\Helper\Helper;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Route\Http\Exception\ForbiddenException;
@@ -17,7 +18,6 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class RouteValidator implements RouteValidatorInterface
 {
-
     /**
      * @var Config
      */
@@ -38,17 +38,23 @@ class RouteValidator implements RouteValidatorInterface
     protected $entityManager;
 
     /**
+     * @var Auth
+     */
+    protected $auth;
+
+    /**
      * ApolloContainer constructor.
      * @param Config $config
      * @param \Twig\Environment $twig
      * @param Helper $helper
      */
-    public function __construct(Config $config, Environment $twig,EntityManagerInterface $entityManager, Helper $helper)
+    public function __construct(Config $config, Environment $twig, EntityManagerInterface $entityManager, Helper $helper, Auth $auth)
     {
         $this->config = $config;
         $this->twig = $twig;
         $this->entityManager = $entityManager;
         $this->helper = $helper;
+        $this->auth = $auth;
     }
 
     /**
@@ -73,6 +79,7 @@ class RouteValidator implements RouteValidatorInterface
         }
         if ($requires['require_auth']) {
             $options['require_auth'] = $requires['require_auth'];
+            $options['auth_method'] = $requires['auth_method'];
             $map->middleware(function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($options) {
                 if ($this->checkAuth($request, $response, $options)) {
                     return $next($request, $response);
@@ -168,7 +175,7 @@ class RouteValidator implements RouteValidatorInterface
         $required_ContentType = $options['required_ContentType'];
         $contentType = Html::getContentType($request);
         if ($required_ContentType && $contentType != $required_ContentType) {
-            throw new BadRequestException(implode("\n", array('Bad Request', json_encode(array('required'=>$required_ContentType, 'got'=>$contentType)))));
+            throw new BadRequestException(implode("\n", array('Bad Request', json_encode(array('required' => $required_ContentType, 'got' => $contentType)))));
         }
         return true;
     }
@@ -182,7 +189,49 @@ class RouteValidator implements RouteValidatorInterface
      */
     public function checkAuth(ServerRequestInterface $request, ResponseInterface &$response, array $options)
     {
-        if (!(new Session($this->config, $this->twig, $this->entityManager, $this->helper))->validate($request)) {
+        $valid = false;
+        if ($options["auth_method"] == Auth::JWT) {
+            if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+                if (preg_match('/Bearer\s(\S+)/', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
+                    $jwt = $matches[1];
+                    if ($jwt) {
+                        if($this->auth->validateJWT($jwt)){
+                            $valid = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($options["auth_method"] == Auth::Session) {
+            $sessionRep = $this->config->get(array('route', 'modules', 'Session', 'entity', 'session'), 'Session:Session');
+            /** @var SessionRepository $sessionRepository */
+            $sessionRepository = $this->entityManager->getRepository($sessionRep);
+
+            $sessionRepository->removeExpired();
+            if (!empty($_SESSION['user'])) {
+                /** @var SessionEntity $session */
+                $session = $sessionRepository->findOneBy(array('user' => $_SESSION['user'], 'sessionId' => session_id()));
+                if ($session) {
+                    /** @var UsersEntity $sessionUser */
+                    $sessionUser = $session->getUser();
+                    if ($sessionUser) {
+                        if ($this->password_match($sessionUser, $session)) {
+                            $valid = true;
+                        } else {
+                            $this->entityManager->remove($session);
+                            $this->entityManager->flush();
+                        }
+                    }
+                }
+            }
+            if (!$valid) {
+                unset($_SESSION['user']);
+                session_destroy();
+            }
+        }
+
+        if (!$valid) {
             throw new UnauthorizedException();
         }
         return true;
@@ -195,7 +244,7 @@ class RouteValidator implements RouteValidatorInterface
      * @return bool
      * @throws ForbiddenException
      */
-    public function checkPermission/** @noinspection PhpUnusedParameterInspection */(ServerRequestInterface $request, ResponseInterface &$response, array $options)
+    public function checkPermission/** @noinspection PhpUnusedParameterInspection */ (ServerRequestInterface $request, ResponseInterface &$response, array $options)
     {
         $sessionUser = $this->helper->getSessionUser();
 

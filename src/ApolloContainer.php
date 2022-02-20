@@ -3,6 +3,7 @@
 
 namespace ApBlock\Apollo;
 
+use ApBlock\Apollo\Auth\Auth;
 use ApBlock\Apollo\Helper\Helper;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -34,22 +35,32 @@ class ApolloContainer implements LoggerHelperInterface
      * @var array
      */
     protected static $permissions = array();
+    
     /**
      * @var Config
      */
     protected $config;
+    
     /**
      * @var \Twig\Environment
      */
     protected $twig;
+    
     /**
      * @var EntityManagerInterface
      */
     protected $entityManager;
+    
+    /**
+     * @var Auth
+     */
+    protected $auth;
+    
     /**
      * @var Helper
      */
     protected $helper;
+    
     /**
      * @var array
      */
@@ -61,13 +72,15 @@ class ApolloContainer implements LoggerHelperInterface
      * @param \Twig\Environment $twig
      * @param EntityManagerInterface $entityManager
      * @param Helper $helper
+     * @param Auth $auth
      * @param LoggerInterface|null $logger
      */
-    public function __construct(Config $config, Environment $twig, EntityManagerInterface $entityManager, Helper $helper, LoggerInterface $logger = null)
+    public function __construct(Config $config, Environment $twig, EntityManagerInterface $entityManager, Helper $helper, Auth $auth, LoggerInterface $logger = null)
     {
         $this->config = $config->fromDimension(array('route','modules'));
         $this->twig = $twig;
         $this->entityManager = $entityManager;
+        $this->auth = $auth;
         $this->helper = $helper;
         $this->setLogDebug($this->config->get('debug', false));
         if ($logger) {

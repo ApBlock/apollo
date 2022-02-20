@@ -13,7 +13,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
-use ApBlock\Apollo\Factory;
+use ApBlock\Apollo\Factory\Factory;
 use ApBlock\Apollo\Logger\Interfaces\LoggerHelperInterface;
 use ApBlock\Apollo\Logger\Traits\LoggerHelperTrait;
 use ApBlock\Apollo\Route\Router;
@@ -146,7 +146,7 @@ class ApplicationStrategy implements StrategyInterface, LoggerHelperInterface
                         'title' => $response->getStatusCode(),
                         'block' => array(
                             'title' => $response->getReasonPhrase(),
-                            'contents' => json_decode(strtok("\n"), true),
+                            'content' => json_decode(strtok("\n"), true),
                         ),
                     );
                     $response->getBody()->write($this->twig->render('errors.html.twig', $params));

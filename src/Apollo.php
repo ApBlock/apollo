@@ -118,6 +118,18 @@ class Apollo
         return $this;
     }
 
+    private function initConfigs(){
+        $configPath = $this->baseDir."/config/";
+        Factory::setConfigPath($configPath);
+        $configModules = $this->configModules;
+        if(empty($configModules)){
+            $configModules = array_map(function($e){
+                return explode(".php",$e)[0];
+            }, array_diff(scandir($configPath), array('.', '..','cli-config.php')));
+        }
+        $this->config = Factory::fromNames($configModules, true);
+    }
+
     public function run()
     {
         if($this->allowErrorReporting){
@@ -127,8 +139,7 @@ class Apollo
             ini_set("display_errors", 'false');
             error_reporting(0);
         }
-        Factory::setConfigPath($this->baseDir."/config/");
-        $this->config = Factory::fromNames($this->configModules, true);
+        $this->initConfigs();
         $this->initErrorHandler();
         $modules_config = $this->config->get(array('route', 'modules'));
         foreach ($modules_config as $module) {

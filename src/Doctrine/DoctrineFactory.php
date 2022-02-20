@@ -53,7 +53,6 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
         $paths = $this->config->get('paths', array());
 
         $config = Setup::createAnnotationMetadataConfiguration($paths, $isDevMode, null, null, false);
-        $this->setSQLLogger($config);
         $this->addNamespaces($config);
         $this->addFunctions($config);
         $this->setProxy($config);
@@ -107,16 +106,6 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
                     )
                 );
             }
-        }
-    }
-
-    /**
-     * @param Configuration $config
-     */
-    private function setSQLLogger(Configuration $config)
-    {
-        if ($this->config->get('debug', false)) {
-            //$config->setSQLLogger(new SQLLogger($this->config, $this->logger));
         }
     }
 

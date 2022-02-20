@@ -24,30 +24,14 @@ class Extensions extends AbstractExtension
     }
 
     /**
-     * Returns a list of functions to add to the existing list.
-     *
      * @return array An array of functions
      */
     public function getFunctions()
     {
         return array(
-            new TwigFunction('header_menu', array($this, 'headerMenu')),
             new TwigFunction('getBasepath', array($this, 'basepath')),
-            new TwigFunction('get_filemtime', array($this, 'getFilemtime')),
+            new TwigFunction('getFileTime', array($this, 'getFilemtime')),
         );
-    }
-
-    /**
-     * @return array
-     */
-    public function headerMenu()
-    {
-        if (!empty($_SESSION['user'])) {
-            $params = array();
-            $params['menu'] = $this->helper->getMenu();
-            return $params;
-        }
-        return array();
     }
 
     /**

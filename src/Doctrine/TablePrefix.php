@@ -6,12 +6,6 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use ReflectionClass;
 use ReflectionException;
 
-/**
- * Class TablePrefix
- * A Doctrine Event Listener to use project prefixed table names in database
- *
- * @package LumiSys\Common\Doctrine\EventListener\TablePrefix
- */
 class TablePrefix
 {
     /**

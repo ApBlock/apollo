@@ -1,12 +1,14 @@
 <?php
 
-namespace ApBlock\Apollo\Language;
+use ApBlock\Apollo\Factory\Factory;
 
 class TranslatableListener extends \Gedmo\Translatable\TranslatableListener
 {
     public function __construct()
     {
         parent::__construct();
-        $this->setDefaultLocale('en');
+        $config = Factory::fromNames(array('route'), true);
+        $lang = $config->get('default_language', 'en');
+        $this->setDefaultLocale($lang);
     }
 }

@@ -29,9 +29,6 @@ class PdoFactory implements InvokableFactoryInterface, ConfigurableFactoryInterf
         }
 
         $pdo = $this->createPDO($logger);
-
-       // $pdo->setAttribute(\PDO::ATTR_STATEMENT_CLASS, array(__NAMESPACE__ . '\PDOStatement', array($pdo)));
-
         return $pdo;
     }
 

@@ -1,6 +1,4 @@
 <?php
-
-
 namespace ApBlock\Apollo\Logger;
 
 

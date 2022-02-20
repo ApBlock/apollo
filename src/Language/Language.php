@@ -2,6 +2,7 @@
 namespace ApBlock\Apollo\Language;
 
 
+use ApBlock\Apollo\Auth\Auth;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Psr\Http\Message\ServerRequestInterface;
@@ -9,7 +10,7 @@ use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ApBlock\Apollo\ApolloContainer;
 use ApBlock\Apollo\Config\Config;
-use ApBlock\Apollo\Helper;
+use ApBlock\Apollo\Helper\Helper;
 use Twig\Environment;
 
 class Language extends ApolloContainer
@@ -22,7 +23,7 @@ class Language extends ApolloContainer
     protected static $URLS = array();
     protected $request;
 
-    public function __construct(Config $config, Environment $twig, EntityManagerInterface $entityManager, Helper $helper, ServerRequestInterface $request, LoggerInterface $logger = null)
+    public function __construct(Config $config, Environment $twig, EntityManagerInterface $entityManager, Helper $helper, ServerRequestInterface $request, Auth $auth, LoggerInterface $logger = null)
     {
         $this->request = $request;
         $this->languages = $config->get(array('route', 'languages'), array('en'));
@@ -34,7 +35,7 @@ class Language extends ApolloContainer
         $twig->addGlobal('__lang', $this->lang);
         $twig->addGlobal('__lang_urls', $this->getUrls());
 
-        parent::__construct($config, $twig, $entityManager, $helper, $logger);
+        parent::__construct($config, $twig, $entityManager, $helper, $auth, $logger);
     }
 
     /**

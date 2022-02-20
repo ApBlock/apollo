@@ -97,7 +97,7 @@ class ApolloKernel implements LoggerHelperInterface
             );
         }
 
-        //register_shutdown_function(array($this,'_fatal_handler'));
+        register_shutdown_function(array($this,'_fatal_handler'));
     }
 
     /**
@@ -108,7 +108,6 @@ class ApolloKernel implements LoggerHelperInterface
         $router = $this->container->get(Router::class);
         /** @var Router $router */
         $router->buildRoutes();
-
         return $router->go();
     }
 
