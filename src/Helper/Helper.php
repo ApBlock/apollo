@@ -2,6 +2,7 @@
 namespace ApBlock\Apollo\Helper;
 
 
+use ApBlock\Apollo\Auth\Auth;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
 use GuzzleHttp\Psr7\ServerRequest;
@@ -29,6 +30,11 @@ class Helper implements LoggerHelperInterface
     protected $config;
 
     /**
+     * @var Auth
+     */
+    protected $auth;
+
+    /**
      * @var string
      */
     protected $basepath;
@@ -46,11 +52,13 @@ class Helper implements LoggerHelperInterface
      * ApolloContainer constructor.
      * @param EntityManagerInterface $entityManager
      * @param Config $config
+     * @param Auth $auth
      * @param LoggerInterface|null $logger
      */
-    public function __construct(EntityManagerInterface $entityManager, Config $config, LoggerInterface $logger = null)
+    public function __construct(EntityManagerInterface $entityManager, Config $config, Auth $auth, LoggerInterface $logger = null)
     {
         $this->entityManager = $entityManager;
+        $this->auth = $auth;
         $this->basepath = $config->get(array('routing','basepath'), '/');
         $this->config = $config->fromDimension(array('route','modules'));
         $this->setLogDebug($this->config->get('debug', false));
@@ -66,7 +74,6 @@ class Helper implements LoggerHelperInterface
      */
     public function getSessionUser()
     {
-        //TODO módosítsd
         if (!empty($_SESSION[$this->session_key])) {
             /** @var SessionRepository $sessionRepository */
             $sessionRepository = $this->entityManager->getRepository($this->config->get(array('session', 'entity', 'session'), 'Session:Session'));
@@ -76,16 +83,16 @@ class Helper implements LoggerHelperInterface
                 return $session->getUser();
             }
         }else{
-            $headerToken = $_SERVER["HTTP_THUNDERTOKEN"];
-            $token = (isset($_GET["token"]) ? $_GET["token"] : (isset($_POST["token"]) ? $_POST["token"] : (!empty($headerToken) ? $headerToken : "")));
-            if(!empty($token)){
-                try{
-                    $decodedData = JWT::decode($token, $this->jwt["key"], array('HS256'));
-                    if(is_object($decodedData)){
-                        $fetchData = $decodedData->data;
-                        return $this->entityManager->getRepository("Session:Users")->findOneBy(array('email' => $fetchData->email));
+            if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+                if (preg_match('/Bearer\s(\S+)/', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
+                    $jwt = $matches[1];
+                    if ($jwt) {
+                        $user = $this->auth->getUserByJWT($jwt);
+                        if (is_object($user)) {
+                            return $user;
+                        }
                     }
-                }catch (\Exception $e){}
+                }
             }
         }
         return false;
@@ -98,13 +105,18 @@ class Helper implements LoggerHelperInterface
     public function parseLang(ServerRequestInterface $request, Config $config)
     {
         $params = $request->getQueryParams();
-        if (array_key_exists('request', $params)) {
-            $tmp = explode('/', $params['request']);
-            $lng = array_shift($tmp);
-            $headerLang = (isset($_SERVER["HTTP_THUNDERLANG"]) ? $_SERVER["HTTP_THUNDERLANG"] : null);
-            return in_array($lng, $config->get('languages', array('en'))) ? $lng : (!empty($headerLang) ? (in_array($headerLang,$config->get('languages', array('en'))) ? $headerLang : $config->get('default_language')) : $config->get('default_language'));
-        } else {
-            return $config->get('default_language', 'en');
+        if(isset($_COOKIE["default_language"])){
+            return $_COOKIE["default_language"];
+        }else{
+            if (array_key_exists('request', $params)) {
+                //TODO EZT MÉG ÁT KELL ALAKÍTANI
+                $tmp = explode('/', $params['request']);
+                $lng = array_shift($tmp);
+                $headerLang = (isset($_SERVER["HTTP_Content-Language"]) ? $_SERVER["HTTP_Content-Language"] : null);
+                return in_array($lng, $config->get('languages', array('en'))) ? $lng : (!empty($headerLang) ? (in_array($headerLang,$config->get('languages', array('en'))) ? $headerLang : $config->get('default_language')) : $config->get('default_language'));
+            } else {
+                return $config->get('default_language', 'en');
+            }
         }
     }
 

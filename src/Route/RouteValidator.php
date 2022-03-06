@@ -4,11 +4,14 @@ namespace ApBlock\Apollo\Route;
 
 use ApBlock\Apollo\Auth\Auth;
 use ApBlock\Apollo\Helper\Helper;
+use CabbyAdmin\entity\Users;
 use Doctrine\ORM\EntityManagerInterface;
+use League\Container\Container;
 use League\Route\Http\Exception\ForbiddenException;
 use ApBlock\Apollo\Config\Config;
 use ApBlock\Apollo\Html;
 use ApBlock\Apollo\modules\Session;
+use Psr\Container\ContainerInterface;
 use Twig\Environment;
 use League\Route\Http\Exception\BadRequestException;
 use League\Route\Http\Exception\UnauthorizedException;
@@ -43,10 +46,11 @@ class RouteValidator implements RouteValidatorInterface
     protected $auth;
 
     /**
-     * ApolloContainer constructor.
+     * RouteValidator constructor.
      * @param Config $config
      * @param \Twig\Environment $twig
      * @param Helper $helper
+     * @param Auth $auth
      */
     public function __construct(Config $config, Environment $twig, EntityManagerInterface $entityManager, Helper $helper, Auth $auth)
     {
@@ -61,9 +65,10 @@ class RouteValidator implements RouteValidatorInterface
      * @param Route $map
      * @param array $requires
      * @param array $options
+     * @param Container $container
      * @return Route
      */
-    public function validate(Route $map, array $requires, array $options)
+    public function validate(Route $map, array $requires, array $options, Container $container)
     {
         if (!empty($requires['require_permissions'])) {
             if (!is_array($requires['require_permissions'][0])) {
@@ -76,10 +81,18 @@ class RouteValidator implements RouteValidatorInterface
                 }
                 return $response;
             });
+        }    
+        if (!empty($requires['required_permission_groups'])) {
+            $options['required_permission_groups'] = $requires['required_permission_groups'];
+            $map->middleware(function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($options) {
+                if ($this->checkPermissionGroup($request, $response, $options)) {
+                    return $next($request, $response);
+                }
+                return $response;
+            });
         }
         if ($requires['require_auth']) {
             $options['require_auth'] = $requires['require_auth'];
-            $options['auth_method'] = $requires['auth_method'];
             $map->middleware(function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($options) {
                 if ($this->checkAuth($request, $response, $options)) {
                     return $next($request, $response);
@@ -89,8 +102,8 @@ class RouteValidator implements RouteValidatorInterface
         }
         if (!empty($requires['required_fields'])) {
             $options['required_fields'] = (array)$requires['required_fields'];
-            $map->middleware(function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($options) {
-                if ($this->checkFields($request, $response, $options)) {
+            $map->middleware(function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($options, $container) {
+                if ($this->checkFields($request, $response, $options, $container)) {
                     return $next($request, $response);
                 }
                 return $response;
@@ -147,18 +160,49 @@ class RouteValidator implements RouteValidatorInterface
      * @return bool
      * @throws BadRequestException
      */
-    public function checkFields(ServerRequestInterface $request, ResponseInterface &$response, array $options)
+    public function checkFields(ServerRequestInterface $request, ResponseInterface &$response, array $options, Container $container)
     {
         $required_fields = array_unique($options['required_fields']);
         $params = $request->getQueryParams();
         $errors = array();
-        foreach ($required_fields as $field) {
-            if (!isset($params[$field]) || (is_array($params[$field]) && empty($params[$field])) || (!is_array($params[$field]) && $params[$field] == '')) {
-                $errors[] = $field;
+        foreach ($required_fields as $field => $fieldOptions) {
+            if (is_array($fieldOptions)) {
+                if (!isset($params[$field]) || (is_array($params[$field]) && empty($params[$field])) || (!is_array($params[$field]) && $params[$field] == '')) {
+                    $errors[$field][] = 'required';
+                } else {
+                    if (isset($fieldOptions["min"])) {
+                        if (mb_strlen($params[$field]) < $fieldOptions["min"]) {
+                            $errors[$field][] = $field . '_min_' . $fieldOptions["min"];
+                        }
+                    }
+                    if (isset($fieldOptions["max"])) {
+                        if (mb_strlen($params[$field]) > $fieldOptions["max"]) {
+                            $errors[$field][] = $field . '_max_' . $fieldOptions["max"];
+                        }
+                    }
+                    if (isset($fieldOptions["custom"])) {
+                        if (!empty($fieldOptions["custom"])) {
+                            $class = $fieldOptions["custom"][0];
+                            $method = $fieldOptions["custom"][1];
+                            $invokableClass = $container->get($fieldOptions["custom"][0]);
+                            if (method_exists($class, $method)) {
+                                $customValidateResponse = $invokableClass->$method($field, $fieldOptions);
+                                if ($customValidateResponse != null) {
+                                    $errors[$field][] = $customValidateResponse;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                $field = $fieldOptions;
+                if (!isset($params[$field]) || (is_array($params[$field]) && empty($params[$field])) || (!is_array($params[$field]) && $params[$field] == '')) {
+                    $errors[$field][] = 'required';
+                }
             }
         }
         if (!empty($errors)) {
-            throw new BadRequestException(implode("\n", array('Bad Request', json_encode($errors))));
+            throw new BadRequestException(json_encode(array('message' => 'Bad Request', 'data' => $errors)));
         }
         return true;
     }
@@ -195,7 +239,7 @@ class RouteValidator implements RouteValidatorInterface
                 if (preg_match('/Bearer\s(\S+)/', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
                     $jwt = $matches[1];
                     if ($jwt) {
-                        if($this->auth->validateJWT($jwt)){
+                        if ($this->auth->validateJWT($jwt)) {
                             $valid = true;
                         }
                     }
@@ -253,6 +297,26 @@ class RouteValidator implements RouteValidatorInterface
             if (!$sessionUser || !$sessionUser->hasPermission($module, $right)) {
                 throw new ForbiddenException();
             }
+        }
+        return true;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @param array $options
+     * @return bool
+     * @throws ForbiddenException
+     */
+    public function checkPermissionGroup/** @noinspection PhpUnusedParameterInspection */ (ServerRequestInterface $request, ResponseInterface &$response, array $options)
+    {
+        /** @var Users $sessionUser */
+        $sessionUser = $this->helper->getSessionUser();
+        if (!$sessionUser) {
+            throw new UnauthorizedException();
+        }
+        if(!$sessionUser->checkPermissionGroup($options['required_permission_groups'])){
+            throw new ForbiddenException();
         }
         return true;
     }

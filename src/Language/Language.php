@@ -26,14 +26,19 @@ class Language extends ApolloContainer
     public function __construct(Config $config, Environment $twig, EntityManagerInterface $entityManager, Helper $helper, ServerRequestInterface $request, Auth $auth, LoggerInterface $logger = null)
     {
         $this->request = $request;
-        $this->languages = $config->get(array('route', 'languages'), array('en'));
-        $this->default_language = $config->get(array('route', 'default_language'), 'en');
+        $this->languages = array();
+        foreach (array_diff(scandir($config->get(array('route', 'translator', 'path'), '')),array('.', '..')) as $lang) {
+            $this->languages[] = str_replace(".php","",$lang);
+        }
+        $this->default_language = $config->get(array('route', 'translator', 'default'), 'en');
         $this->lang = $helper->parseLang($request,$config->fromDimension(array('route')));
         foreach($this->languages as $lang) {
-            $this->translate[$lang] = $config->get(array('route', 'global_translations', $lang), array());
+            $this->translate[$lang] = include($config->get(array('route', 'translator', 'path'), null).'/'.$lang.'.php');
         }
         $twig->addGlobal('__lang', $this->lang);
         $twig->addGlobal('__lang_urls', $this->getUrls());
+        $twig->addGlobal('__languages', $this->languages);
+        $twig->addGlobal('__global_translations', $this->translate[$this->lang]);
 
         parent::__construct($config, $twig, $entityManager, $helper, $auth, $logger);
     }
@@ -87,7 +92,6 @@ class Language extends ApolloContainer
     {
         return static::$URLS;
     }
-
 
     /**
      * @param $class

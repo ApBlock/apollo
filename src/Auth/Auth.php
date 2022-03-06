@@ -55,4 +55,23 @@ class Auth
         }
         return false;
     }
+
+    public function getUserByJWT($token){
+        try {
+            $decodedData = JWT::decode($token, $this->config->get(array('jwt','key')), array('HS256'));
+            if (is_object($decodedData)) {
+                $fetchData = $decodedData->data;
+                $table = $this->config->get(array('route', 'modules', 'Session', 'entity', 'user'), 'Session:Users');
+                $where = $this->config->get(array('route', 'modules', 'Session', 'entity', 'user_auth_key'), 'email');
+                $a = $this->config->get(array('route', 'modules', 'Session', 'entity', 'user_auth_data'), 'email');
+                $data = $fetchData->{$a};
+                $getUser = $this->entityManager->getRepository($table)->findOneBy(array($where => $data));
+                if ($getUser) {
+                    return $getUser;
+                }
+            }
+        } catch (\Exception $e) {
+        }
+        return false;
+    }
 }

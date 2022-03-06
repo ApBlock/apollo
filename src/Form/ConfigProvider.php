@@ -2,6 +2,7 @@
 
 namespace ApBlock\Apollo\Form;
 
+use Apblock\Apollo\Form\View\Helper\Form;
 use ApBlock\Apollo\Form\View\Helper\FormElement;
 use ApBlock\Apollo\Utils\ArrayUtils;
 use Laminas\ServiceManager\Factory\InvokableFactory;
@@ -26,6 +27,7 @@ class ConfigProvider extends \Laminas\Form\ConfigProvider
             'formelementerrors'          => View\Helper\FormElementErrors::class,
             'formElementErrors'          => View\Helper\FormElementErrors::class,
             'FormElementErrors'          => View\Helper\FormElementErrors::class,
+            'form'                       => View\Helper\Form::class,
             'formstart'                  => View\Helper\FormStart::class,
             'form_start'                 => View\Helper\FormStart::class,
             'formStart'                  => View\Helper\FormStart::class,
@@ -49,6 +51,7 @@ class ConfigProvider extends \Laminas\Form\ConfigProvider
         ),
         'factories' => array(
             View\Helper\FormCollection::class      => InvokableFactory::class,
+            View\Helper\Form::class                => InvokableFactory::class,
             View\Helper\FormStart::class           => InvokableFactory::class,
             View\Helper\FormEnd::class             => InvokableFactory::class,
             View\Helper\FormRow::class             => InvokableFactory::class,

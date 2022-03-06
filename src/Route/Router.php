@@ -82,7 +82,7 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
      * @param RouteValidatorInterface $validator
      * @return Router
      */
-    public function setValidator(RouteValidatorInterface$validator)
+    public function setValidator(RouteValidatorInterface $validator)
     {
         $this->validator = $validator;
         return $this;
@@ -108,7 +108,7 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
                         if (!isset($paths[$path]['paths'][$sub])) {
                             $paths[$path]['paths'][$sub] = array();
                         }
-                        self::mergePaths($paths[$path]['paths'], array($sub=>$sub_data));
+                        self::mergePaths($paths[$path]['paths'], array($sub => $sub_data));
                     }
                 }
             }
@@ -126,8 +126,15 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
             if (!empty($data['methods'])) {
                 foreach ($data['methods'] as $method => $options) {
                     $map = $this->map($method, rtrim($pre, '/') . '/' . trim($path, '/'), $options['callable']);
+
                     if (!empty($options['strategy']) && is_callable(array($options['strategy'], 'getExceptionDecorator'))) {
                         $map->setStrategy($this->container->get($options['strategy']));
+                    }
+                    if (!empty($data['strategy']) && is_callable(array($data['strategy'], 'getExceptionDecorator'))) {
+                        $map->setStrategy($this->container->get($data['strategy']));
+                    }
+                    if (!empty($data['auth_method'])) {
+                        $options["auth_method"] = $data["auth_method"];
                     }
                     if (!empty($options['name'])) {
                         $map->setName($options['name']);
@@ -141,8 +148,8 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
                             'required_headers' => array(),
                             'required_ContentType' => '',
                             'require_auth' => false,
-                            'auth_method' => Auth::Session,
                             'require_permissions' => array(),
+                            'required_permission_groups' => array(),
                         )
                     );
                     $options['valid_ContentTypes'] = $this->valid_ContentTypes;
@@ -150,7 +157,8 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
 
                     if ($this->validator instanceof RouteValidatorInterface) {
                         $validator = $this->validator;
-                        $map = $validator->validate($map, $requires, $options);
+                        $map = $validator->validate($map, $requires, $options, $this->container);
+
                     }
                 }
             }

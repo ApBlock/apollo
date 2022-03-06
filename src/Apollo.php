@@ -16,6 +16,9 @@ class Apollo
     /** @var array $configModules */
     private $configModules = array();
 
+    /** @var bool $dynamicRouteLoad */
+    private $dynamicRouteLoad = false;
+
     /** @var $config */
     private $config;
 
@@ -60,6 +63,11 @@ class Apollo
     public function allowErrorReporting()
     {
         $this->allowErrorReporting = true;
+    }
+
+    public function setDynamicRouteLoad($load = false)
+    {
+        $this->dynamicRouteLoad = $load;
     }
 
     /**
@@ -123,9 +131,7 @@ class Apollo
         Factory::setConfigPath($configPath);
         $configModules = $this->configModules;
         if(empty($configModules)){
-            $configModules = array_map(function($e){
-                return explode(".php",$e)[0];
-            }, array_diff(scandir($configPath), array('.', '..','cli-config.php')));
+            $configModules = $this->buildRoutes(array_diff(scandir($configPath), array('.', '..','cli-config.php','translations')));
         }
         $this->config = Factory::fromNames($configModules, true);
     }
@@ -155,5 +161,35 @@ class Apollo
         $container = $this->initContainers($this->config);
         $core = new ApolloKernel($container);
         return $core->go();
+    }
+
+    private function buildRoutes($array = array()){
+        $moduleFolders = array();
+        foreach (new \DirectoryIterator($_SERVER["DOCUMENT_ROOT"]."/modules") as $dir) {
+            if ($dir->isDot()) continue;
+            if ($dir->isDir()) {
+                $moduleFolders[] = $dir->current()->getFilename();
+            }
+        }
+        if($this->dynamicRouteLoad) {
+            $findUrlBasepath = explode("/", $_SERVER['REQUEST_URI'])[1];
+            foreach($array as $itemKey => $item){
+                if(in_array($findUrlBasepath,$moduleFolders)){
+                    if(strpos($item,'rout') !== false) {
+                        if (strpos($item, $findUrlBasepath . '_rout') === false) {
+                            unset($array[$itemKey]);
+                        }
+                    }
+                }else{
+                    if(strpos($item,'_rout') !== false){
+                        unset($array[$itemKey]);
+                    }
+                }
+            }
+        }
+
+        return array_map(function($file){
+            return explode(".php",$file)[0];
+        },$array);
     }
 }
