@@ -148,6 +148,7 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
                             'required_headers' => array(),
                             'required_ContentType' => '',
                             'require_auth' => false,
+                            'auth_method' => Auth::Session,
                             'require_permissions' => array(),
                             'required_permission_groups' => array(),
                         )

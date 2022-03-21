@@ -4,7 +4,6 @@ namespace ApBlock\Apollo\Route;
 
 use ApBlock\Apollo\Auth\Auth;
 use ApBlock\Apollo\Helper\Helper;
-use CabbyAdmin\entity\Users;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Container\Container;
 use League\Route\Http\Exception\ForbiddenException;
@@ -93,6 +92,7 @@ class RouteValidator implements RouteValidatorInterface
         }
         if ($requires['require_auth']) {
             $options['require_auth'] = $requires['require_auth'];
+            $options['auth_method'] = $requires['auth_method'];
             $map->middleware(function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($options) {
                 if ($this->checkAuth($request, $response, $options)) {
                     return $next($request, $response);
@@ -162,7 +162,7 @@ class RouteValidator implements RouteValidatorInterface
      */
     public function checkFields(ServerRequestInterface $request, ResponseInterface &$response, array $options, Container $container)
     {
-        $required_fields = array_unique($options['required_fields']);
+        $required_fields = $options['required_fields'];
         $params = $request->getQueryParams();
         $errors = array();
         foreach ($required_fields as $field => $fieldOptions) {
@@ -202,7 +202,7 @@ class RouteValidator implements RouteValidatorInterface
             }
         }
         if (!empty($errors)) {
-            throw new BadRequestException(json_encode(array('message' => 'Bad Request', 'data' => $errors)));
+            throw new BadRequestException(json_encode(array('message' => 'bad_request', 'data' => $errors)));
         }
         return true;
     }
