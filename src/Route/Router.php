@@ -4,9 +4,11 @@
 namespace ApBlock\Apollo\Route;
 
 use ApBlock\Apollo\Auth\Auth;
+use ApBlock\Apollo\Config\Config;
 use ApBlock\Apollo\Config\ConfigurableFactoryInterface;
 use ApBlock\Apollo\Config\ConfigurableFactoryTrait;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Uri;
 use League\Route\RouteCollection;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -67,7 +69,20 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
      */
     public function go()
     {
-        return parent::dispatch($this->container->get(ServerRequestInterface::class), $this->container->get(Response::class));
+        $config = $this->container->get(Config::class);
+        /** @var ServerRequestInterface $serverRequestInterface */
+        $serverRequestInterface = $this->container->get(ServerRequestInterface::class);
+        $newPath = $serverRequestInterface->getUri()->getPath();
+        foreach (array_diff(scandir($config->get(array('route','translator','path'),'')),array('.', '..')) as $lang) {
+            $cleanLang = str_replace(".php","",$lang);
+            if($newPath == '/'.$cleanLang){
+                $newPath = '/';
+            }else{
+                $newPath = str_replace('/'.$cleanLang.'/','/',$newPath);
+            }
+        }
+        $newInterface = $serverRequestInterface->withUri($serverRequestInterface->getUri()->withPath($newPath));
+        return parent::dispatch($newInterface, $this->container->get(Response::class));
     }
 
     /**
@@ -231,4 +246,5 @@ class Router extends RouteCollection implements LoggerHelperInterface, Configura
         $basepath = rtrim($this->getBasepath(), '/');
         return implode('/', array($basepath, ltrim($url, '/')));
     }
+
 }

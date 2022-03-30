@@ -15,7 +15,7 @@ use Twig\Environment;
 
 class Language extends ApolloContainer
 {
-    private $languages;
+    protected $languages;
     private $default_language;
     protected $lang;
     protected $translate = array();
@@ -31,7 +31,7 @@ class Language extends ApolloContainer
             $this->languages[] = str_replace(".php","",$lang);
         }
         $this->default_language = $config->get(array('route', 'translator', 'default'), 'en');
-        $this->lang = $helper->parseLang($request,$config->fromDimension(array('route')));
+        $this->lang = $helper->parseLang($request,$config->fromDimension(array('route')),$this->languages);
         foreach($this->languages as $lang) {
             $this->translate[$lang] = include($config->get(array('route', 'translator', 'path'), null).'/'.$lang.'.php');
         }
@@ -39,6 +39,7 @@ class Language extends ApolloContainer
         $twig->addGlobal('__lang_urls', $this->getUrls());
         $twig->addGlobal('__languages', $this->languages);
         $twig->addGlobal('__global_translations', $this->translate[$this->lang]);
+        setcookie('default_language',$this->lang,strtotime('+365 days'));
 
         parent::__construct($config, $twig, $entityManager, $helper, $auth, $logger);
     }

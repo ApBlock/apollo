@@ -4,6 +4,7 @@ namespace ApBlock\Apollo\Route;
 
 use ApBlock\Apollo\Auth\Auth;
 use ApBlock\Apollo\Helper\Helper;
+use InfinitePlayer\entity\Users;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Container\Container;
 use League\Route\Http\Exception\ForbiddenException;

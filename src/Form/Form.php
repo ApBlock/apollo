@@ -8,11 +8,12 @@ use ApBlock\Apollo\Form\Translator\TranslatorAwareTrait;
 use ApBlock\Apollo\Form\Translator\TranslatorHelperInterface;
 use ApBlock\Apollo\Form\Translator\TranslatorHelperTrait;
 use ApBlock\Apollo\Form\Translator\TranslatorLoaderInterface;
-use Zend\Mvc\I18n\Translator as MvcTranslator;
-use Zend\I18n\Translator\Translator;
-use Zend\Validator\AbstractValidator;
+use Laminas\I18n\Translator\Translator;
+use Laminas\Validator\AbstractValidator;
+use Laminas\Mvc\I18n\Translator as MvcTranslator;
 
-class Form extends \Zend\Form\Form implements TranslatorAwareInterface, TranslatorHelperInterface
+
+class Form extends \Laminas\Form\Form implements TranslatorAwareInterface, TranslatorHelperInterface
 {
     use TranslatorAwareTrait;
     use TranslatorHelperTrait;
@@ -37,5 +38,41 @@ class Form extends \Zend\Form\Form implements TranslatorAwareInterface, Translat
         }
         AbstractValidator::setDefaultTranslator($this->translator);
         AbstractValidator::setDefaultTranslatorTextDomain(static::class);
+    }
+
+    public function lang(){
+        return $_COOKIE["default_language"] ?? 'en';
+    }
+
+    public static function generateInputNameErrors($array)
+    {
+        $result = self::generateInputNameRec($array);
+        $retArray = array();
+        foreach ($result as $arrKey => $arrVal) {
+            $exp = explode("]", $arrKey);
+            $newKey = array_shift($exp);
+            array_pop($exp);
+            $newKey = $newKey.implode("]", $exp).(count($exp) > 0 ? "]" : "");
+            $retArray[$newKey][] = $arrVal;
+        }
+        return $retArray;
+    }
+
+    /**
+     * @param $array
+     * @param string $prefix
+     * @return array
+     */
+    private function generateInputNameRec($array, $prefix = '')
+    {
+        $result = array();
+        foreach ($array as $key=>$value) {
+            if (is_array($value)) {
+                $result = $result + generateInputNameRec($value, $prefix . $key . '][');
+            } else {
+                $result[$prefix.$key] = $value;
+            }
+        }
+        return $result;
     }
 }

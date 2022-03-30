@@ -1,7 +1,7 @@
 <?php
-namespace ThunderCore\Form\View\Helper;
+namespace ApBlock\Apollo\Form\View\Helper;
 
-class Form extends \Zend\Form\View\Helper\Form
+class Form extends \Laminas\Form\View\Helper\Form
 {
     protected $translations;
 

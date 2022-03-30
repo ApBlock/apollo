@@ -76,11 +76,11 @@ class Helper implements LoggerHelperInterface
     {
         if (!empty($_SESSION[$this->session_key])) {
             /** @var SessionRepository $sessionRepository */
-            $sessionRepository = $this->entityManager->getRepository($this->config->get(array('session', 'entity', 'session'), 'Session:Session'));
+            $sessionRepository = $this->entityManager->getRepository($this->config->get(array('Session', 'entity', 'session'), 'Session:Session'));
             /** @var Session $session */
-            $session = $sessionRepository->findOneBy(array('user' => $_SESSION[$this->session_key], 'sessionId' => session_id()));
+            $session = $sessionRepository->findOneBy(array('userid' => $_SESSION[$this->session_key], 'sessionid' => session_id()));
             if ($session) {
-                return $session->getUser();
+                return $session->getUserid();
             }
         }else{
             if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
@@ -102,20 +102,27 @@ class Helper implements LoggerHelperInterface
      * @param ServerRequestInterface $request
      * @return string
      */
-    public function parseLang(ServerRequestInterface $request, Config $config)
+    public function parseLang(ServerRequestInterface $request, Config $config, array $languages)
     {
         $params = $request->getQueryParams();
+        if(isset($params["language"])){
+            if(in_array($params["request"],$languages)){
+                return $params["request"];
+            }
+            if(in_array($params["language"],$languages)){
+                return $params["language"];
+            }
+        }
         if(isset($_COOKIE["default_language"])){
             return $_COOKIE["default_language"];
         }else{
             if (array_key_exists('request', $params)) {
-                //TODO EZT MÉG ÁT KELL ALAKÍTANI
                 $tmp = explode('/', $params['request']);
                 $lng = array_shift($tmp);
-                $headerLang = (isset($_SERVER["HTTP_Content-Language"]) ? $_SERVER["HTTP_Content-Language"] : null);
-                return in_array($lng, $config->get('languages', array('en'))) ? $lng : (!empty($headerLang) ? (in_array($headerLang,$config->get('languages', array('en'))) ? $headerLang : $config->get('default_language')) : $config->get('default_language'));
+                $headerLang = (isset($_SERVER["HTTP_Content-Language"]) ? $_SERVER["HTTP_Content-Language"] : $config->get(array('translator','default'), 'en'));
+                return in_array($lng, $languages) ? $lng : (!empty($headerLang) ? (in_array($headerLang,$languages) ? $headerLang : $config->get(array('translator','default'), 'en')) : $config->get(array('translator','default'), 'en'));
             } else {
-                return $config->get('default_language', 'en');
+                return $config->get(array('translator','default'), 'en');
             }
         }
     }
