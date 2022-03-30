@@ -97,7 +97,11 @@ class JsonStrategy implements StrategyInterface
 
                 return $response;
             }
-            $apiResponseBuilder = new APIResponseBuilder(500, "Internal server error");
+            $data = array(
+                "message" => $exception->getMessage(),
+                "trace" => $exception->getTrace()
+            );
+            $apiResponseBuilder = new APIResponseBuilder(500, "Internal server error", $data);
             $response->getBody()->write($apiResponseBuilder->build());
             return $response;
         };

@@ -44,6 +44,7 @@
         "gedmo/doctrine-extensions": "^3.5",
         "php-curl-class/php-curl-class": "^9.5",
         "laminas/laminas-i18n": "^2.10",
+        "laminas/laminas-mvc-i18n": "^1.1",
         "guzzlehttp/guzzle": "^7.4"
     },
     "minimum-stability": "stable",
