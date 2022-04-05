@@ -63,7 +63,7 @@ class Form extends \Laminas\Form\Form implements TranslatorAwareInterface, Trans
      * @param string $prefix
      * @return array
      */
-    private function generateInputNameRec($array, $prefix = '')
+    public static function generateInputNameRec($array, $prefix = '')
     {
         $result = array();
         foreach ($array as $key=>$value) {

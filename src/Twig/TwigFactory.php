@@ -31,11 +31,17 @@ class TwigFactory implements InvokableFactoryInterface, ConfigurableFactoryInter
             throw new Exception(__CLASS__ . " can't work without configuration");
         }
 
+        $findUrlBasepath = explode("/", $_SERVER['REQUEST_URI'])[1];
+
         $loader = new FilesystemLoader($this->config->get('templates_path', BASE_DIR . '/src/templates'));
         $paths = $this->config->get('paths', array());
         if (!empty($paths)) {
             foreach ($paths as $module => $module_paths) {
-                foreach ($module_paths as $path) {
+                if(isset($module_paths[$findUrlBasepath])){
+                    $loader->addPath($module_paths[$findUrlBasepath], $module);
+                    continue;
+                }
+                foreach ($module_paths as $pathKey => $path) {
                     try {
                         $loader->addPath($path, $module);
                     } catch (Exception $e) {

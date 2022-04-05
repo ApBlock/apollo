@@ -139,6 +139,8 @@ class HtmlStrategy implements StrategyInterface, LoggerHelperInterface
                 'title' => $response->getStatusCode(),
                 'block' => array(
                     'title' => $response->getReasonPhrase(),
+                    'message' => $exception->getMessage(),
+                    'trace' => $exception->getTraceAsString(),
                 ),
             );
             $response->getBody()->write($this->twig->render('errors.html.twig', $params));

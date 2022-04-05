@@ -4,7 +4,6 @@ namespace ApBlock\Apollo\Route;
 
 use ApBlock\Apollo\Auth\Auth;
 use ApBlock\Apollo\Helper\Helper;
-use InfinitePlayer\entity\Users;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Container\Container;
 use League\Route\Http\Exception\ForbiddenException;
@@ -252,14 +251,16 @@ class RouteValidator implements RouteValidatorInterface
             $sessionRep = $this->config->get(array('route', 'modules', 'Session', 'entity', 'session'), 'Session:Session');
             /** @var SessionRepository $sessionRepository */
             $sessionRepository = $this->entityManager->getRepository($sessionRep);
-
-            $sessionRepository->removeExpired();
+            try {
+                $sessionRepository->removeExpired();
+            }catch (\Exception $e){
+            }
             if (!empty($_SESSION['user'])) {
                 /** @var SessionEntity $session */
-                $session = $sessionRepository->findOneBy(array('user' => $_SESSION['user'], 'sessionId' => session_id()));
+                $session = $sessionRepository->findOneBy(array('userid' => $_SESSION['user'], 'sessionid' => session_id()));
                 if ($session) {
                     /** @var UsersEntity $sessionUser */
-                    $sessionUser = $session->getUser();
+                    $sessionUser = $session->getUserid();
                     if ($sessionUser) {
                         if ($this->password_match($sessionUser, $session)) {
                             $valid = true;
@@ -320,5 +321,17 @@ class RouteValidator implements RouteValidatorInterface
             throw new ForbiddenException();
         }
         return true;
+    }
+
+    /**
+     * @param Users $sessionUser
+     * @param UsersSession $session
+     * @return bool
+     */
+    protected function password_match($sessionUser, $session)
+    {
+        $sessionRep = $this->config->get(array('route', 'modules', 'Session', 'entity', 'user'), 'Session:Session');
+        $userEntity = $this->entityManager->getRepository($sessionRep)->findOneBy(array('id'=>$sessionUser->getId()));
+        return hash_equals($userEntity->getPassword(), $session->getHash());
     }
 }

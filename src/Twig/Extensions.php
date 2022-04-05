@@ -38,9 +38,9 @@ class Extensions extends AbstractExtension
      * @param $path
      * @return string
      */
-    public function basepath($path)
+    public function basepath($path,$rewritePath = false)
     {
-        return $this->helper->getRealUrl($path);
+        return !$rewritePath ? $this->helper->getRealUrl($path) : '/'.$path;
     }
 
     /**
