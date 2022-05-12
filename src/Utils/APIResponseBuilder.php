@@ -62,8 +62,11 @@ class APIResponseBuilder{
      * @param string $message
      * @return APIResponseBuilder
      */
-    public function setMessage($message)
+    public function setMessage($message, $status = null)
     {
+        if ($status != null) {
+            $this->status = $status;
+        }
         $this->message = $message;
         return $this;
     }

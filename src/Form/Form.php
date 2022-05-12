@@ -68,7 +68,7 @@ class Form extends \Laminas\Form\Form implements TranslatorAwareInterface, Trans
         $result = array();
         foreach ($array as $key=>$value) {
             if (is_array($value)) {
-                $result = $result + generateInputNameRec($value, $prefix . $key . '][');
+                $result = $result + self::generateInputNameRec($value, $prefix . $key . '][');
             } else {
                 $result[$prefix.$key] = $value;
             }

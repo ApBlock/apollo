@@ -113,17 +113,27 @@ class Helper implements LoggerHelperInterface
                 return $params["language"];
             }
         }
-        if(isset($_COOKIE["default_language"])){
-            return $_COOKIE["default_language"];
-        }else{
-            if (array_key_exists('request', $params)) {
-                $tmp = explode('/', $params['request']);
-                $lng = array_shift($tmp);
-                $headerLang = (isset($_SERVER["HTTP_Content-Language"]) ? $_SERVER["HTTP_Content-Language"] : $config->get(array('translator','default'), 'en'));
-                return in_array($lng, $languages) ? $lng : (!empty($headerLang) ? (in_array($headerLang,$languages) ? $headerLang : $config->get(array('translator','default'), 'en')) : $config->get(array('translator','default'), 'en'));
-            } else {
-                return $config->get(array('translator','default'), 'en');
+
+        if(isset($_SERVER["HTTP_CONTENT_LANGUAGE"])){
+            if(!empty($_SERVER["HTTP_CONTENT_LANGUAGE"])){
+                if(in_array($_SERVER["HTTP_CONTENT_LANGUAGE"], $languages)) {
+                    return $_SERVER["HTTP_CONTENT_LANGUAGE"];
+                }
             }
+        }
+
+        if (array_key_exists('request', $params)) {
+            $tmp = explode('/', $params['request']);
+            $lng = array_shift($tmp);
+            if (strpos($params["request"], 'api/') === false) {
+                if(isset($_COOKIE["default_language"])){
+                    return $_COOKIE["default_language"];
+                }
+            }
+            $headerLang = (isset($_SERVER["HTTP_CONTENT_LANGUAGE"]) ? $_SERVER["HTTP_CONTENT_LANGUAGE"] : $config->get(array('translator','default'), 'en'));
+            return in_array($lng, $languages) ? $lng : (!empty($headerLang) ? (in_array($headerLang,$languages) ? $headerLang : $config->get(array('translator','default'), 'en')) : $config->get(array('translator','default'), 'en'));
+        } else {
+            return $config->get(array('translator','default'), 'en');
         }
     }
 

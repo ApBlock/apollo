@@ -186,7 +186,8 @@ class RouteValidator implements RouteValidatorInterface
                             $method = $fieldOptions["custom"][1];
                             $invokableClass = $container->get($fieldOptions["custom"][0]);
                             if (method_exists($class, $method)) {
-                                $customValidateResponse = $invokableClass->$method($field, $fieldOptions);
+                                $value = $params[$field];
+                                $customValidateResponse = $invokableClass->$method($value,$field, $fieldOptions);
                                 if ($customValidateResponse != null) {
                                     $errors[$field][] = $customValidateResponse;
                                 }

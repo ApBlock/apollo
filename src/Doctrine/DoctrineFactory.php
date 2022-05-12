@@ -53,7 +53,7 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
         $paths = $this->config->get('paths', array());
 
         $config = Setup::createAnnotationMetadataConfiguration($paths, $isDevMode, null, null, false);
-        $this->addNamespaces($config);
+
         $this->addFunctions($config);
         $this->setProxy($config);
 
@@ -70,6 +70,29 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
         $this->addEventSubscribers($eventManager);
 
         $entityManager = new \ApBlock\Apollo\Doctrine\EntityManager($connection, $config, $eventManager);
+
+//        \Doctrine\Common\Annotations\AnnotationRegistry::registerFile(
+//            BASE_DIR.'/vendor/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php'
+//        );
+
+        $cache = new \Doctrine\Common\Cache\ArrayCache;
+        $annotationReader = new \Doctrine\Common\Annotations\AnnotationReader;
+        $cachedAnnotationReader = new \Doctrine\Common\Annotations\CachedReader(
+            $annotationReader,
+            $cache
+        );
+        $driverChain = new \Doctrine\ORM\Mapping\Driver\DriverChain();
+        \Gedmo\DoctrineExtensions::registerAbstractMappingIntoDriverChainORM(
+            $driverChain,
+            $cachedAnnotationReader
+        );
+
+
+        $this->addNamespaces($config);
+        $config->setMetadataCacheImpl($cache);
+        $config->setQueryCacheImpl($cache);
+
+
 
         $this->addTypes();
         $this->addTypeMappings($entityManager);
@@ -294,7 +317,7 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
     {
         $namespaces = $this->config->get('autoloadNamespaces', array());
         if (!empty($namespaces)) {
-            AnnotationRegistry::registerAutoloadNamespaces($namespaces);
+           AnnotationRegistry::registerAutoloadNamespaces($namespaces);
         }
     }
 }
