@@ -1,4 +1,5 @@
 <?php
+
 namespace ApBlock\Apollo\Doctrine;
 
 
@@ -65,9 +66,8 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
             throw $e;
         }
 
-
         \Doctrine\Common\Annotations\AnnotationRegistry::registerFile(
-            BASE_DIR.'/vendor/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php'
+            BASE_DIR . '/vendor/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php'
         );
         $cache = new \Symfony\Component\Cache\Adapter\ArrayAdapter();
 
@@ -75,18 +75,16 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
             new \Doctrine\Common\Annotations\AnnotationReader(),
             $cache
         );
+
         $mappingDriver = new \Doctrine\Persistence\Mapping\Driver\MappingDriverChain();
+
         \Gedmo\DoctrineExtensions::registerAbstractMappingIntoDriverChainORM(
             $mappingDriver,
             $annotationReader
         );
-        $mappingDriver->addDriver(
-            new \Doctrine\ORM\Mapping\Driver\AnnotationDriver(
-                $annotationReader,
-                [BASE_DIR.'/entity']
-            ),
-            'Medinilla\entity'
-        );
+
+        $this->addNamespaces($config, $mappingDriver, $annotationReader);
+
         $eventManager = new \Doctrine\Common\EventManager();
 
         $sluggableListener = new \Gedmo\Sluggable\SluggableListener();
@@ -107,13 +105,9 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
         $blameableListener = new \Gedmo\Blameable\BlameableListener();
         $blameableListener->setAnnotationReader($annotationReader);
         $blameableListener->setCacheItemPool($cache);
-        $blameableListener->setUserValue('Medinilla');
         $eventManager->addEventSubscriber($blameableListener);
 
         $translatableListener = new \Gedmo\Translatable\TranslatableListener();
-
-        $translatableListener->setTranslatableLocale('en');
-        $translatableListener->setDefaultLocale('en');
         $translatableListener->setAnnotationReader($annotationReader);
         $translatableListener->setCacheItemPool($cache);
         $eventManager->addEventSubscriber($translatableListener);
@@ -123,40 +117,10 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
         $config->setQueryCache($cache);
         $config->setResultCache($cache);
 
-
         $entityManager = new \ApBlock\Apollo\Doctrine\EntityManager($connection, $config, $eventManager);
 
-//
-//        $eventManager = new EventManager;
-//        $this->addEventListeners($eventManager);
-//        $this->addEventSubscribers($eventManager);
-//
-//        $entityManager = new \ApBlock\Apollo\Doctrine\EntityManager($connection, $config, $eventManager);
-//
-//
-//        $cache = new \Doctrine\Common\Cache\ArrayCache;
-//        $annotationReader = new \Doctrine\Common\Annotations\AnnotationReader;
-//        $cachedAnnotationReader = new \Doctrine\Common\Annotations\CachedReader(
-//            $annotationReader,
-//            $cache
-//        );
-//        $driverChain = new \Doctrine\ORM\Mapping\Driver\DriverChain();
-//        \Gedmo\DoctrineExtensions::registerAbstractMappingIntoDriverChainORM(
-//            $driverChain,
-//            $cachedAnnotationReader
-//        );
-//
-//
-//        $this->addNamespaces($config);
-//        $config->setMetadataCacheImpl($cache);
-//        $config->setQueryCacheImpl($cache);
-//
-//
-//
-//        $this->addTypes();
-//        $this->addTypeMappings($entityManager);
-//        $this->registerAutoloadNamespaces();
-
+        $this->addTypeMappings($entityManager);
+        $this->registerAutoloadNamespaces();
 
         return $entityManager;
     }
@@ -194,11 +158,21 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
     /**
      * @param Configuration $config
      */
-    private function addNamespaces(Configuration $config)
+    private function addNamespaces(Configuration $config, $mappingDriver, $annotationReader)
     {
         $namespaces = $this->config->get('namespaces', array());
+        $paths = $this->config->get('paths', array());
+        $i = 0;
         foreach ($namespaces as $alias => $namespace) {
             $config->addEntityNamespace($alias, $namespace);
+            $mappingDriver->addDriver(
+                new \Doctrine\ORM\Mapping\Driver\AnnotationDriver(
+                    $annotationReader,
+                    [$paths[$i]]
+                ),
+                $namespace
+            );
+            $i++;
         }
     }
 
@@ -213,9 +187,15 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
                 foreach ($functions as $name => $className) {
                     try {
                         switch (mb_strtolower($type)) {
-                            case 'string': $config->addCustomStringFunction($name, $className); break;
-                            case 'numeric': $config->addCustomNumericFunction($name, $className); break;
-                            case 'datetime': $config->addCustomDatetimeFunction($name, $className); break;
+                            case 'string':
+                                $config->addCustomStringFunction($name, $className);
+                                break;
+                            case 'numeric':
+                                $config->addCustomNumericFunction($name, $className);
+                                break;
+                            case 'datetime':
+                                $config->addCustomDatetimeFunction($name, $className);
+                                break;
                         }
                     } catch (ORMException $e) {
                         $this->logger->error('Doctrine', array($e->getMessage()));
@@ -264,7 +244,7 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
                         Type::addType($name, $className);
                     }
                 } catch (DBALException $e) {
-                    $this->logger->error('Doctrine:types', array('name'=>$name, 'class'=>$className, 'e'=>$e->getMessage()));
+                    $this->logger->error('Doctrine:types', array('name' => $name, 'class' => $className, 'e' => $e->getMessage()));
                     throw $e;
                 }
             }
@@ -283,7 +263,7 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
                 try {
                     $entityManager->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping($dbType, $doctrineType);
                 } catch (DBALException $e) {
-                    $this->logger->error('Doctrine:typeMappings', array('dbType'=>$dbType, 'doctrineType'=>$doctrineType, 'e'=>$e->getMessage()));
+                    $this->logger->error('Doctrine:typeMappings', array('dbType' => $dbType, 'doctrineType' => $doctrineType, 'e' => $e->getMessage()));
                     throw $e;
                 }
             }
@@ -305,7 +285,7 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
                             try {
                                 $eventListenerObject = $this->container->get($eventListener['class']);
                             } catch (Exception $e) {
-                                $this->logger->error('Doctrine:eventSubscribers', array('class'=>$eventListener['class'], 'e'=>$e->getMessage()));
+                                $this->logger->error('Doctrine:eventSubscribers', array('class' => $eventListener['class'], 'e' => $e->getMessage()));
                                 throw $e;
                             }
                         } else {
@@ -313,11 +293,11 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
                                 try {
                                     $eventListenerObject = new $eventListener['class'];
                                 } catch (Exception $e) {
-                                    $this->logger->error('Doctrine:eventSubscribers', array('class'=>$eventListener['class'], 'e'=>$e->getMessage()));
+                                    $this->logger->error('Doctrine:eventSubscribers', array('class' => $eventListener['class'], 'e' => $e->getMessage()));
                                     throw $e;
                                 }
                             } else {
-                                $this->logger->error('Doctrine:eventSubscribers', array('class'=>$eventListener['class'], 'e'=>'not exists'));
+                                $this->logger->error('Doctrine:eventSubscribers', array('class' => $eventListener['class'], 'e' => 'not exists'));
                                 throw new Exception("{$eventListener['class']} not exists");
                             }
                         }
@@ -342,7 +322,7 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
                         try {
                             $eventSubscriberObject = $this->container->get($eventSubscriber);
                         } catch (Exception $e) {
-                            $this->logger->error('Doctrine:eventSubscribers', array('class'=>$eventSubscriber, 'e'=>$e->getMessage()));
+                            $this->logger->error('Doctrine:eventSubscribers', array('class' => $eventSubscriber, 'e' => $e->getMessage()));
                             throw $e;
                         }
                     } else {
@@ -350,18 +330,18 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
                             try {
                                 $eventSubscriberObject = new $eventSubscriber;
                             } catch (Exception $e) {
-                                $this->logger->error('Doctrine:eventSubscribers', array('class'=>$eventSubscriber, 'e'=>$e->getMessage()));
+                                $this->logger->error('Doctrine:eventSubscribers', array('class' => $eventSubscriber, 'e' => $e->getMessage()));
                                 throw $e;
                             }
                         } else {
-                            $this->logger->error('Doctrine:eventSubscribers', array('class'=>$eventSubscriber, 'e'=>'not exists'));
+                            $this->logger->error('Doctrine:eventSubscribers', array('class' => $eventSubscriber, 'e' => 'not exists'));
                             throw new Exception("{$eventSubscriber} not exists");
                         }
                     }
                     if ($eventSubscriberObject instanceof EventSubscriber) {
                         $eventManager->addEventSubscriber($eventSubscriberObject);
                     } else {
-                        $this->logger->error('Doctrine:eventSubscribers', array('class'=>$eventSubscriber, 'e'=>'not instance of Doctrine\\Common\\EventSubscriber'));
+                        $this->logger->error('Doctrine:eventSubscribers', array('class' => $eventSubscriber, 'e' => 'not instance of Doctrine\\Common\\EventSubscriber'));
                         throw new Exception("{$eventSubscriber} not instance of Doctrine\\Common\\EventSubscriber");
                     }
                 }
@@ -376,7 +356,7 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
     {
         $namespaces = $this->config->get('autoloadNamespaces', array());
         if (!empty($namespaces)) {
-           AnnotationRegistry::registerAutoloadNamespaces($namespaces);
+            AnnotationRegistry::registerAutoloadNamespaces($namespaces);
         }
     }
 }
