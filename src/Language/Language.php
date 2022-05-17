@@ -31,7 +31,7 @@ class Language extends ApolloContainer
             $this->languages[] = str_replace(".php","",$lang);
         }
         $this->default_language = $config->get(array('route', 'translator', 'default'), 'en');
-        $this->lang = $helper->parseLang($request,$config->fromDimension(array('route')),$this->languages);
+        $this->lang = self::parseLang($config);
         foreach($this->languages as $lang) {
             $this->translate[$lang] = include($config->get(array('route', 'translator', 'path'), null).'/'.$lang.'.php');
         }
@@ -42,6 +42,49 @@ class Language extends ApolloContainer
         setcookie('default_language',$this->lang,strtotime('+365 days'));
 
         parent::__construct($config, $twig, $entityManager, $helper, $auth, $logger);
+    }
+
+    /**
+     * @param Config $config
+     * @return string
+     */
+    public static function parseLang(Config $config)
+    {
+        $languages = array();
+        foreach (array_diff(scandir($config->get(array('route','translator', 'path'), '')),array('.', '..')) as $lang) {
+            $languages[] = str_replace(".php","",$lang);
+        }
+        $params = $_GET;
+        if(isset($params["language"])){
+            if(in_array($params["request"],$languages)){
+                return $params["request"];
+            }
+            if(in_array($params["language"],$languages)){
+                return $params["language"];
+            }
+        }
+
+        if(isset($_SERVER["HTTP_CONTENT_LANGUAGE"])){
+            if(!empty($_SERVER["HTTP_CONTENT_LANGUAGE"])){
+                if(in_array($_SERVER["HTTP_CONTENT_LANGUAGE"], $languages)) {
+                    return $_SERVER["HTTP_CONTENT_LANGUAGE"];
+                }
+            }
+        }
+
+        if (array_key_exists('request', $params)) {
+            $tmp = explode('/', $params['request']);
+            $lng = array_shift($tmp);
+            if (strpos($params["request"], 'api/') === false) {
+                if(isset($_COOKIE["default_language"])){
+                    return $_COOKIE["default_language"];
+                }
+            }
+            $headerLang = (isset($_SERVER["HTTP_CONTENT_LANGUAGE"]) ? $_SERVER["HTTP_CONTENT_LANGUAGE"] : $config->get(array('route','translator','default'), 'en'));
+            return in_array($lng, $languages) ? $lng : (!empty($headerLang) ? (in_array($headerLang,$languages) ? $headerLang : $config->get(array('route','translator','default'), 'en')) : $config->get(array('route','translator','default'), 'en'));
+        } else {
+            return $config->get(array('route','translator','default'), 'en');
+        }
     }
 
     /**

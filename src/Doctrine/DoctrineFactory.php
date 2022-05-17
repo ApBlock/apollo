@@ -65,38 +65,97 @@ class DoctrineFactory implements InvokableFactoryInterface, ConfigurableFactoryI
             throw $e;
         }
 
-        $eventManager = new EventManager;
-        $this->addEventListeners($eventManager);
-        $this->addEventSubscribers($eventManager);
+
+        \Doctrine\Common\Annotations\AnnotationRegistry::registerFile(
+            BASE_DIR.'/vendor/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php'
+        );
+        $cache = new \Symfony\Component\Cache\Adapter\ArrayAdapter();
+
+        $annotationReader = new \Doctrine\Common\Annotations\PsrCachedReader(
+            new \Doctrine\Common\Annotations\AnnotationReader(),
+            $cache
+        );
+        $mappingDriver = new \Doctrine\Persistence\Mapping\Driver\MappingDriverChain();
+        \Gedmo\DoctrineExtensions::registerAbstractMappingIntoDriverChainORM(
+            $mappingDriver,
+            $annotationReader
+        );
+        $mappingDriver->addDriver(
+            new \Doctrine\ORM\Mapping\Driver\AnnotationDriver(
+                $annotationReader,
+                [BASE_DIR.'/entity']
+            ),
+            'Medinilla\entity'
+        );
+        $eventManager = new \Doctrine\Common\EventManager();
+
+        $sluggableListener = new \Gedmo\Sluggable\SluggableListener();
+        $sluggableListener->setAnnotationReader($annotationReader);
+        $sluggableListener->setCacheItemPool($cache);
+        $eventManager->addEventSubscriber($sluggableListener);
+
+        $treeListener = new \Gedmo\Tree\TreeListener();
+        $treeListener->setAnnotationReader($annotationReader);
+        $treeListener->setCacheItemPool($cache);
+        $eventManager->addEventSubscriber($treeListener);
+
+        $timestampableListener = new \Gedmo\Timestampable\TimestampableListener();
+        $timestampableListener->setAnnotationReader($annotationReader);
+        $timestampableListener->setCacheItemPool($cache);
+        $eventManager->addEventSubscriber($timestampableListener);
+
+        $blameableListener = new \Gedmo\Blameable\BlameableListener();
+        $blameableListener->setAnnotationReader($annotationReader);
+        $blameableListener->setCacheItemPool($cache);
+        $blameableListener->setUserValue('Medinilla');
+        $eventManager->addEventSubscriber($blameableListener);
+
+        $translatableListener = new \Gedmo\Translatable\TranslatableListener();
+
+        $translatableListener->setTranslatableLocale('en');
+        $translatableListener->setDefaultLocale('en');
+        $translatableListener->setAnnotationReader($annotationReader);
+        $translatableListener->setCacheItemPool($cache);
+        $eventManager->addEventSubscriber($translatableListener);
+
+        $config->setMetadataDriverImpl($mappingDriver);
+        $config->setMetadataCache($cache);
+        $config->setQueryCache($cache);
+        $config->setResultCache($cache);
+
 
         $entityManager = new \ApBlock\Apollo\Doctrine\EntityManager($connection, $config, $eventManager);
 
-//        \Doctrine\Common\Annotations\AnnotationRegistry::registerFile(
-//            BASE_DIR.'/vendor/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php'
+//
+//        $eventManager = new EventManager;
+//        $this->addEventListeners($eventManager);
+//        $this->addEventSubscribers($eventManager);
+//
+//        $entityManager = new \ApBlock\Apollo\Doctrine\EntityManager($connection, $config, $eventManager);
+//
+//
+//        $cache = new \Doctrine\Common\Cache\ArrayCache;
+//        $annotationReader = new \Doctrine\Common\Annotations\AnnotationReader;
+//        $cachedAnnotationReader = new \Doctrine\Common\Annotations\CachedReader(
+//            $annotationReader,
+//            $cache
 //        );
-
-        $cache = new \Doctrine\Common\Cache\ArrayCache;
-        $annotationReader = new \Doctrine\Common\Annotations\AnnotationReader;
-        $cachedAnnotationReader = new \Doctrine\Common\Annotations\CachedReader(
-            $annotationReader,
-            $cache
-        );
-        $driverChain = new \Doctrine\ORM\Mapping\Driver\DriverChain();
-        \Gedmo\DoctrineExtensions::registerAbstractMappingIntoDriverChainORM(
-            $driverChain,
-            $cachedAnnotationReader
-        );
-
-
-        $this->addNamespaces($config);
-        $config->setMetadataCacheImpl($cache);
-        $config->setQueryCacheImpl($cache);
-
-
-
-        $this->addTypes();
-        $this->addTypeMappings($entityManager);
-        $this->registerAutoloadNamespaces();
+//        $driverChain = new \Doctrine\ORM\Mapping\Driver\DriverChain();
+//        \Gedmo\DoctrineExtensions::registerAbstractMappingIntoDriverChainORM(
+//            $driverChain,
+//            $cachedAnnotationReader
+//        );
+//
+//
+//        $this->addNamespaces($config);
+//        $config->setMetadataCacheImpl($cache);
+//        $config->setQueryCacheImpl($cache);
+//
+//
+//
+//        $this->addTypes();
+//        $this->addTypeMappings($entityManager);
+//        $this->registerAutoloadNamespaces();
 
 
         return $entityManager;

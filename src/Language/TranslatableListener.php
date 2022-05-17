@@ -9,11 +9,11 @@ class TranslatableListener extends \Gedmo\Translatable\TranslatableListener
     {
         parent::__construct();
         $config = Factory::fromNames(array('route'), true);
-        $lang = $config->get(array('route','translator','default'), null);
-        if($lang == null){
-            $config = Factory::fromNames(array('api_route'), true);
-            $lang = $config->get(array('route','translator','default'), 'en');
-        }
+        $lang = Language::parseLang($config);
+        $this->setTranslatableLocale($lang);
+        $this->setTranslationFallback(true);
+        $this->setPersistDefaultLocaleTranslation(true);
         $this->setDefaultLocale($lang);
+        $_SERVER["HTTP_CONTENT_LANGUAGE"] = $lang;
     }
 }

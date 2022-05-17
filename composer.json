@@ -45,7 +45,7 @@
         "laminas/laminas-i18n": "^2.10",
         "laminas/laminas-mvc-i18n": "^1.1",
         "guzzlehttp/guzzle": "^7.4",
-        "gedmo/doctrine-extensions": "3.0.0"
+        "gedmo/doctrine-extensions": "3.6.0"
     },
     "minimum-stability": "stable",
     "config": {
